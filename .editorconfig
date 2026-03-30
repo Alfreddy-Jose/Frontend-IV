@@ -1,0 +1,11 @@
+# EditorConfig ayuda a mantener estilos de codificación consistentes
+# http://editorconfig.org
+
+root = true
+[*]
+indent_style = space
+indent_size = 2
+
+# Configuración para React / JavaScript / TypeScript
+[*.{js,jsx,ts,tsx,json}]
+indent_size = 2
