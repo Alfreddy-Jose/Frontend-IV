@@ -13,7 +13,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 
 // Define las columnas para la DataTable
-export const columns = [
+export const columns = (onEdit, onDelete) => [
   {
     id: "select",
     header: ({ table }) => (
@@ -66,40 +66,36 @@ export const columns = [
     cell: ({ row }) => {
       const rol = row.getValue("rol");
       return <div className="font-medium">{rol}</div>;
-    }
+    },
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const payment = row.original;
+      const user = row.original;
 
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
+              <span className="sr-only">Abrir menu</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => {
-                const id = payment.id;
-                navigator.clipboard.writeText(id).then(() => {
-                  alert(`ID copiado: ${id}`);
-                  console.log(`ID copiado al portapapeles: ${id}`);
-                }).catch(err => {
-                  console.error('Error al copiar al portapapeles:', err);
-                  alert('No se pudo copiar el ID. Intenta manualmente.');
-                });
-              }}
-            >
-              Copiar ID
-            </DropdownMenuItem>
+            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onEdit(user)}
+              className="cursor-pointer"
+            >
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => onDelete(user)}
+              className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
+            >
+              Eliminar
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

@@ -5,6 +5,11 @@ export const getAllRoles = async () => {
   return response.data;
 };
 
+export const getAllRolesPermisos = async () => {
+  const response = await api.get('/roles_permisos');
+  return response.data;
+};
+
 export const createRole = async (roleData) => {
   const response = await api.post('/roles', roleData);
   return response.data;

@@ -1,11 +1,40 @@
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
+import { Toaster } from "react-hot-toast";
 
 export default function Layout({ children }) {
   return (
     <>
       <Navbar />
+      <Toaster
+        position="top-right"
+        gutter={12} // Espacio entre múltiples alertas
+        containerStyle={{
+          top: 40, // Esto es lo que bajará la alerta
+          left: 20,
+          bottom: 20,
+          right: 20,
+        }}
+        toastOptions={{
+          // Estilos por defecto para toasts simples
+          className: "",
+          style: {
+            background: "#1e293b",
+            color: "#fff",
+            border: "1px solid #334155",
+            borderRadius: "12px",
+            fontSize: "14px",
+          },
+          success: {
+            duration: 4000,
+            iconTheme: {
+              primary: "#10b981",
+              secondary: "#fff",
+            },
+          },
+        }}
+      />
       <div className="flex overflow-hidden bg-white pt-16 dark:bg-[#020617]">
         <Sidebar />
         <div
@@ -22,7 +51,6 @@ export default function Layout({ children }) {
             </div>
           </main>
           <Footer />
-
         </div>
       </div>
     </>

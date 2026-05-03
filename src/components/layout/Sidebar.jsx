@@ -1,11 +1,24 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutGrid, Users, Bell, UserRoundKey } from "lucide-react"; // Importamos los iconos
+import { 
+  LayoutGrid, 
+  Users, 
+  ShelvingUnit, 
+  UserRoundKey, 
+  BookOpenText, 
+  MapPinHouse,
+  CalendarFold,
+  FileText,
+} from "lucide-react"; // Importamos los iconos
 
 const links = [
   { name: "dashboard", href: "/", icon: LayoutGrid },
-  { name: "Roles", href: "/roles", icon: UserRoundKey },
+  { name: "Roles & Permisos", href: "/roles_permisos", icon: UserRoundKey },
   { name: "usuarios", href: "/users", icon: Users },
-  { name: "alert", href: "/alert", icon: Bell },
+  { name: "Pnf", href: "/pnfs", icon: BookOpenText },
+  { name: "Sede", href: "/sedes", icon: MapPinHouse },
+  { name: "Inventario", href: "/inventario", icon: ShelvingUnit },
+  { name: "Lapso Académico", href: "/lapsos", icon: CalendarFold },
+  { name: "Matrículas", href: "/matriculas", icon: FileText },
 ];
 
 export default function Sidebar() {

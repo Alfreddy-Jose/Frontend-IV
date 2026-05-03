@@ -16,6 +16,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Trash2,
 } from "lucide-react";
 
 import {
@@ -92,7 +93,7 @@ export function DataTable({ columns, data, filterColumn, statusFilterColumn = "s
                 console.log("Eliminando:", selectedRowIds);
               }}
             >
-              Eliminar seleccionados
+              <Trash2 />  Eliminar
             </Button>
           )}
 

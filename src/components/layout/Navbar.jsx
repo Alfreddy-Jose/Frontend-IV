@@ -15,9 +15,11 @@ import {
 } from "@/components/ui/avatar"
 
 import { useTheme } from "@/hooks/useTheme";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
   const { setTheme } = useTheme();
+  const { user } = useAuth();
 
   return (
     <nav className="bg-white border-b border-gray-100 fixed z-30 w-full dark:bg-[#020617] dark:border-slate-800/50">
@@ -123,8 +125,9 @@ export default function Navbar() {
             {/* Perfil de Usuario */}
             <div className="flex items-center gap-3 pl-4 border-l border-gray-100 dark:border-slate-800/50">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-gray-800 leading-none dark:text-gray-100">Alex Rivers</p>
-                <p className="text-[11px] text-gray-400 font-medium mt-1">Administrator</p>
+                <p className="text-sm font-bold text-gray-800 leading-none dark:text-gray-100">{`${!user.name ? "Nombre no disponible" : user.name} ${!user.lastname ? "Apellido no disponible" : user.lastname}`}</p>
+                <p className="text-[11px] text-gray-400 font-medium mt-1">{ !user.roles[0].name ? "Rol no disponible" : user.roles[0].name }</p>
+                
               </div>
               <div className="relative">
                 <Avatar>
@@ -143,4 +146,4 @@ export default function Navbar() {
       </div>
     </nav>
   );
-}
+};
