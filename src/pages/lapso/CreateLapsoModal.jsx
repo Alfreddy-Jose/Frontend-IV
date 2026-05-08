@@ -1,5 +1,6 @@
 import { ModernInput } from "@/components/shared/InputModerno";
 import { ModalFormulario } from "@/components/shared/ModalFormulario";
+import { DateField } from "@/components/shared/DateField";
 import { notify } from "@/components/shared/Notify";
 import SelectSearch from "@/components/shared/SelectSearch";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ export default function CreateLapsoModal({ fetchLapsos, tiposLapsos }) {
   const validationSchema = useMemo(
     () =>
       Yup.object({
+        nombre_lapso: Yup.string().required("Este campo es obligatorio"),
         ano: Yup.string()
           .matches(/^[0-9]*$/, "Solo números permitidos") // Validación mientras escribe
           .test(
@@ -51,8 +53,11 @@ export default function CreateLapsoModal({ fetchLapsos, tiposLapsos }) {
 
               const inicio = new Date(fecha_inicio);
               const fin = new Date(value);
-              if (Number.isNaN(inicio.getTime()) || Number.isNaN(fin.getTime())) {
-                return true; 
+              if (
+                Number.isNaN(inicio.getTime()) ||
+                Number.isNaN(fin.getTime())
+              ) {
+                return true;
               }
               return fin > inicio;
             },
@@ -66,7 +71,10 @@ export default function CreateLapsoModal({ fetchLapsos, tiposLapsos }) {
 
               const inicio = new Date(fecha_inicio);
               const fin = new Date(value);
-              if (Number.isNaN(inicio.getTime()) || Number.isNaN(fin.getTime())) {
+              if (
+                Number.isNaN(inicio.getTime()) ||
+                Number.isNaN(fin.getTime())
+              ) {
                 return true;
               }
 
@@ -100,7 +108,7 @@ export default function CreateLapsoModal({ fetchLapsos, tiposLapsos }) {
         notify.success(successMessage);
         fetchLapsos();
         setOpenModal(false);
-        resetForm();       
+        resetForm();
       } catch (error) {
         // Si el backend (Laravel) devuelve errores de validación (usualmente status 422)
         if (error.response && error.response.status === 422) {
@@ -195,6 +203,7 @@ export default function CreateLapsoModal({ fetchLapsos, tiposLapsos }) {
           placeholder="Ej: 2026-7"
           value={nombreLapso}
           readOnly
+          disabled
           className="mb-4"
         />
         {formik.errors.nombre_lapso && formik.touched.nombre_lapso && (
@@ -205,7 +214,7 @@ export default function CreateLapsoModal({ fetchLapsos, tiposLapsos }) {
       </div>
 
       {/* Input de la fecha de inicio */}
-      <div className="space-y-2">
+            <div className="space-y-2">
         <Label htmlFor="fecha_inicio">Fecha de Inicio</Label>
         <ModernInput
           id="fecha_inicio"
@@ -230,10 +239,10 @@ export default function CreateLapsoModal({ fetchLapsos, tiposLapsos }) {
           id="fecha_fin"
           name="fecha_fin"
           type="date"
-          min={formik.values.fecha_inicio || undefined}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.fecha_fin}
+          min={formik.values.fecha_inicio || undefined}
           className="mb-4"
         />
         {formik.errors.fecha_fin && formik.touched.fecha_fin && (
@@ -242,6 +251,29 @@ export default function CreateLapsoModal({ fetchLapsos, tiposLapsos }) {
           </p>
         )}
       </div>
+
+{/*       <DateField
+        id="fecha_inicio"
+        name="fecha_inicio"
+        label="Fecha de Inicio"
+        value={formik.values.fecha_inicio}
+        onChange={formik.handleChange}
+        error={formik.errors.fecha_inicio}
+        touched={formik.touched.fecha_inicio}
+        className="mb-4"
+      />
+
+      <DateField
+        id="fecha_fin"
+        name="fecha_fin"
+        label="Fecha de Fin"
+        value={formik.values.fecha_fin}
+        onChange={formik.handleChange}
+        error={formik.errors.fecha_fin}
+        touched={formik.touched.fecha_fin}
+        min={formik.values.fecha_inicio || undefined}
+        className="mb-4"
+      /> */}
     </ModalFormulario>
   );
 }

@@ -7,6 +7,8 @@ import { notify } from "@/components/shared/Notify";
 import { ModalFormulario } from "@/components/shared/ModalFormulario";
 import { ModernInput } from "@/components/shared/InputModerno";
 import { Label } from "@/components/ui/label";
+import { useUpperCase } from "@/hooks/useUpperCase";
+import { useCapitalize } from "@/hooks/useCapitalize";
 
 export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
   const [editingPnf, setEditingPnf] = useState(null);
@@ -16,7 +18,7 @@ export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
   const validationSchema = useMemo(
     () =>
       Yup.object({
-        codigo: Yup.string()
+        codigo: Yup.string() 
           .required("Este campo es obligatorio")
           .matches(/^[0-9]*$/, "Solo números permitidos"),
         nombre: Yup.string().required("Este campo es obligatorio"),
@@ -95,6 +97,12 @@ export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
     }
   }, [isOpen, pnfId]);
 
+  // Inicializar el hook de mayúsculas
+  const { handleUpperCaseChange } = useUpperCase(formik);
+
+  // Inicializar el hook de capitalización
+  const { handleCapitalizeChange } = useCapitalize(formik);
+
   return (
     <ModalFormulario
       button={false}
@@ -123,7 +131,7 @@ export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
           <p className="text-xs text-red-500 mt-[-10px] mb-2">
             {formik.errors.codigo}
           </p>
-        )}
+        )} 
       </div>
 
       {/* Input Nombre del PNF */}
@@ -134,7 +142,7 @@ export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
           name="nombre"
           type="text"
           placeholder="Ej: Programa de Formación en Informática"
-          onChange={formik.handleChange}
+          onChange={handleCapitalizeChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre}
           className="mb-4"
@@ -154,7 +162,7 @@ export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
           name="abreviado"
           type="text"
           placeholder="Ej: PFI"
-          onChange={formik.handleChange}
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.abreviado}
           className="mb-4"
@@ -174,7 +182,7 @@ export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
           name="abreviado_coord"
           type="text"
           placeholder="Ej: PFI-CO"
-          onChange={formik.handleChange}
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.abreviado_coord}
           className="mb-4"

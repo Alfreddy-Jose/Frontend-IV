@@ -21,8 +21,12 @@ export function EditSedeModal({ isOpen, onClose, userId, onSuccess }) {
           nro_sede: Yup.string()
             .matches(/^[0-9]+$/, "Solo se permiten números")
             .required("El número de sede es obligatorio"),
-          nombre_sede: Yup.string().required("El nombre sede es obligatorio"),
-          nombre_abreviado: Yup.string().required(
+          nombre_sede: Yup.string()
+            .matches(/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/, "Solo letras permitidas")
+            .required("El nombre sede es obligatorio"),
+          nombre_abreviado: Yup.string()
+            .matches(/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/, "Solo letras permitidas")
+            .required(
             "El nombre abreviado es obligatorio",
           ),
           estado_id: Yup.string().required("El estado es obligatorio"),

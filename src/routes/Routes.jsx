@@ -10,6 +10,7 @@ import Inventario from "@/pages/inventario/Inventario";
 import Lapso from "@/pages/lapso/Lapso";
 import Matriculas from "@/pages/matricula/Matriculas";
 import RolesPermisos from "@/pages/RolesPermisos.jsx/CrearRolesPermissions";
+import Trayecto from "@/pages/trayecto/Trayecto";
 
 export function AppRoutes() {
   return (
@@ -85,6 +86,15 @@ export function AppRoutes() {
         <ProtectedRoute>
           <Layout>
             <RolesPermisos />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      {/* Rutas para trayectos */}
+      <Route path="/trayectos" element={
+        <ProtectedRoute>
+          <Layout>
+            <Trayecto />
           </Layout>
         </ProtectedRoute>
       } />

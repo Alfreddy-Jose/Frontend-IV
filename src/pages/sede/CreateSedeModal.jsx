@@ -8,6 +8,8 @@ import { ModernInput } from "@/components/shared/InputModerno";
 import { Label } from "@/components/ui/label";
 import { PlusIcon } from "lucide-react";
 import SelectSearch from "@/components/shared/SelectSearch";
+import { useUpperCase } from "@/hooks/useUpperCase";
+import { useCapitalize } from "@/hooks/useCapitalize";
 
 export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados, loadMunicipios }) {
   const [openModal, setOpenModal] = useState(false);
@@ -45,8 +47,12 @@ export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados
         nro_sede: Yup.string()
           .matches(/^[0-9]+$/, "Solo se permiten números")
           .required("El número de sede es obligatorio"),
-        nombre_sede: Yup.string().required("El nombre sede es obligatorio"),
-        nombre_abreviado: Yup.string().required(
+        nombre_sede: Yup.string()
+          .matches(/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/, "Solo letras permitidas")
+          .required("El nombre sede es obligatorio"),
+        nombre_abreviado: Yup.string()
+        .matches(/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/, "Solo letras permitidas")
+        .required(
           "El nombre abreviado es obligatorio",
         ),
         estado_id: Yup.string().required("El estado es obligatorio"),
@@ -122,10 +128,11 @@ export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados
     }
   }, [values.estado_id, cargarMunicipios, setFieldValue]);
 
-  // Mostrar Spinner mientras carga
-  /*   if (loading) {
-    return <Spinner />;
-  } */
+  // Inicializar el hook de mayúsculas
+  const { handleUpperCaseChange } = useUpperCase(formik);
+
+  // Inicializar el hook de capitalización
+  const { handleCapitalizeChange } = useCapitalize(formik);
 
   return (
     <ModalFormulario
@@ -186,7 +193,7 @@ export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados
           name="nombre_sede"
           type="text"
           placeholder="Ej: Sede Central"
-          onChange={formik.handleChange}
+          onChange={handleCapitalizeChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre_sede}
           className="mb-4"
@@ -206,7 +213,7 @@ export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados
           name="nombre_abreviado"
           type="text"
           placeholder="Ej: SDC"
-          onChange={formik.handleChange}
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre_abreviado}
           className="mb-4"
@@ -287,17 +294,17 @@ export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados
       </div>
 
       {/* Input Dirección width full */}
-      <div className="space-y-3">
+      <div className="space-y-2 col-span-1 md:col-span-2">
         <Label htmlFor="direccion">Dirección</Label>
         <ModernInput
           id="direccion"
           name="direccion"
           type="text"
           placeholder="Ej: Calle Principal, Número 123"
-          onChange={formik.handleChange}
+          onChange={handleCapitalizeChange}
           onBlur={formik.handleBlur}
           value={formik.values.direccion}
-          className="mb-4"
+          className="mb-4 w-full"
         />
         {formik.errors.direccion && formik.touched.direccion && (
           <p className="text-xs text-red-500 font-medium mb-3 mt-0">

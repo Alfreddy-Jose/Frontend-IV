@@ -1,7 +1,6 @@
 import axios from "axios";
 import Api from "./api";
 
-
 export const getCsrfToken = async () => {
   return await axios.get("http://localhost:8000/sanctum/csrf-cookie"); // Cambia la URL según tu configuración "https://laravelapi-1-2cah.onrender.com/sanctum/csrf-cookie";
 };

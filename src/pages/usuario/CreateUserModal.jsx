@@ -8,6 +8,7 @@ import { notify } from "@/components/shared/Notify";
 import { Label } from "@/components/ui/label";
 import { ModernInput } from "@/components/shared/InputModerno";
 import SelectSearch from "@/components/shared/SelectSearch";
+import { useCapitalize } from "@/hooks/useCapitalize";
 
 export default function CreateUserModal({ fetchUsers, roles }) {
   const [openModal, setOpenModal] = useState(false);
@@ -15,8 +16,11 @@ export default function CreateUserModal({ fetchUsers, roles }) {
   const validationSchema = useMemo(
     () =>
       Yup.object({
-        name: Yup.string().required("El nombre es obligatorio"),
-        lastname: Yup.string().required("El apellido es obligatorio"),
+        name: Yup.string()
+          .required("Este campo es obligatorio"),
+        lastname: Yup.string()
+          .matches(/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/, "Solo letras permitidas")
+          .required("El apellido es obligatorio"),
         email: Yup.string().email("Email inválido").required("El email es obligatorio"),
         password: Yup.string().min(6, "Mínimo 6 caracteres").required("La contraseña es obligatoria"),
         rol: Yup.string().required("El rol es obligatorio"), // Validar selección
@@ -74,6 +78,9 @@ export default function CreateUserModal({ fetchUsers, roles }) {
     }
   }, [openModal]);
 
+  // Inicializar el hook pasando formik
+  const { handleCapitalizeChange } = useCapitalize(formik);
+
   return (
     <ModalFormulario
       title="Nuevo Usuario"
@@ -93,7 +100,7 @@ export default function CreateUserModal({ fetchUsers, roles }) {
           name="name"
           placeholder="Ej: Alfredo"
           type="text"
-          onChange={formik.handleChange}
+          onChange={handleCapitalizeChange}
           onBlur={formik.handleBlur}
           value={formik.values.name}
           className="mb-4"
@@ -111,7 +118,7 @@ export default function CreateUserModal({ fetchUsers, roles }) {
           name="lastname"
           type="text"
           placeholder="Ej: Gonzales"
-          onChange={formik.handleChange}
+          onChange={handleCapitalizeChange}
           onBlur={formik.handleBlur}
           value={formik.values.lastname}
           className="mb-4"

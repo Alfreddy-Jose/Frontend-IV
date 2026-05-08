@@ -8,6 +8,7 @@ import {
   MapPinHouse,
   CalendarFold,
   FileText,
+  Clock3,
 } from "lucide-react"; // Importamos los iconos
 
 const links = [
@@ -19,6 +20,7 @@ const links = [
   { name: "Inventario", href: "/inventario", icon: ShelvingUnit },
   { name: "Lapso Académico", href: "/lapsos", icon: CalendarFold },
   { name: "Matrículas", href: "/matriculas", icon: FileText },
+  { name: "Trayectos", href: "/trayectos", icon: Clock3 },
 ];
 
 export default function Sidebar() {

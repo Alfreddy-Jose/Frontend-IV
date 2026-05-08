@@ -25,6 +25,7 @@ export function ModalFormulario({
   button = true,
   loadingCargar = false,
   loading = false,
+  tamaño = "sm:max-w-[900px]",
 }) {
   if (loadingCargar) {
     return (
@@ -51,7 +52,7 @@ export function ModalFormulario({
       )}
 
       {/* Contenido del formulario modal */}
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh]">
+      <DialogContent className={`${tamaño}`}>
         <form onSubmit={onSubmit}>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

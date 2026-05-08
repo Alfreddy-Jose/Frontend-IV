@@ -19,7 +19,7 @@ export default function Pnfs() {
   const fetchPnfs = async () => {
     try {
       const users = await getAllPnfs();
-      setData(users);
+      setData(users); 
     } catch (error) {
       console.error("Error fetching users:", error);
       notify.error(

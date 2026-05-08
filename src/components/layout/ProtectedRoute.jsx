@@ -17,7 +17,7 @@ const ProtectedRoute = ({
 
   // Si se requiere un permiso específico, verificarlo
   if (requiredPermission) {
-    const userPermissions = JSON.parse(localStorage.getItem("permissions")) || [];
+    const userPermissions = JSON.parse(localStorage.getItem("permissions")) || user?.permissions || [];
 
     // Si el permiso requerido es para editar usuarios y permitimos edición propia
     if (allowSelfEdit && requiredPermission === "usuario.editar") {

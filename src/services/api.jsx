@@ -24,7 +24,7 @@ Api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Interceptor para manejar respuestas no autorizadas
@@ -35,15 +35,18 @@ Api.interceptors.response.use(
       error.response &&
       (error.response.status === 401 || error.response.status === 419)
     ) {
-      // Limpia el token si lo usas
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      localStorage.removeItem("permissions");
-      // Redirige al login
-      window.location.href = "/login";
+      if (window.location.pathname !== "/login") {
+        // Limpia el almacenamiento
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("permissions");
+
+        // Redirige al login solo si venías de otra página protegida
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default Api;

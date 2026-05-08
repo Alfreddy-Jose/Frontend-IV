@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { ModernInput } from "@/components/shared/InputModerno";
@@ -7,14 +7,10 @@ import { ArrowLeft } from "lucide-react";
 import RoleHeader from "@/components/shared/RoleHeader";
 import PermissionGroup from "@/components/shared/PermissionGroup";
 import { notify } from "@/components/shared/Notify";
-import { createRole, getAllRolesPermisos } from "@/services/rolService";
-import { useState } from "react";
+import { createRole } from "@/services/rolService";
+import { Checkbox } from "@/components/ui/checkbox";
 
-
-const CreateRoleForm = ({ onBack, onSuccess }) => {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState([]);
-
+const CreateRoleForm = ({ onBack, onSuccess, permissionsStructure }) => {
   const formik = useFormik({
     initialValues: {
       nombre: "",
@@ -29,7 +25,7 @@ const CreateRoleForm = ({ onBack, onSuccess }) => {
       try {
         console.log(values);
         await createRole(values);
-        
+
         notify.success("Rol creado con éxito");
         onSuccess();
       } catch (error) {
@@ -41,36 +37,21 @@ const CreateRoleForm = ({ onBack, onSuccess }) => {
     },
   });
 
-  /* cargar permisos desde la API */
-  const fetchRoles = async () => {
-    try {
-      const roles = await getAllRolesPermisos();
-      const grouped = roles[0]?.groupedPermissions || {};
-      const formattedData = Object.keys(grouped).map((key) => ({
-        category: key.toUpperCase(),
-        items: grouped[key].map((p) => ({
-          id: p.full_name,
-          label: p.full_name.split('.')[1] || p.full_name,
-        })),
-      }));
-      setData(formattedData);
-    } catch (error) {
-      console.error("Error fetching roles:", error);
-      notify.error(
-        "Error al obtener los roles. Por favor, inténtalo de nuevo.",
-      );
-    } finally {
-      setLoading(false);
+  const allPermissionIds = permissionsStructure.flatMap((group) =>
+    group.items.map((i) => i.id),
+  );
+
+  const isAllSelected =
+    allPermissionIds.length > 0 &&
+    allPermissionIds.every((id) => formik.values.permisos.includes(id));
+
+  const handleSelectAllToggle = () => {
+    if (isAllSelected) {
+      formik.setFieldValue("permisos", []);
+    } else {
+      formik.setFieldValue("permisos", allPermissionIds);
     }
   };
-
-  useEffect(() => {
-    fetchRoles();
-  }, []);
-
-  if (loading) {
-    return <p>cargando...</p>;
-  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -85,12 +66,28 @@ const CreateRoleForm = ({ onBack, onSuccess }) => {
 
       {/* Header que reacciona a Formik */}
       <RoleHeader
-        roleName={formik.values.nombre || "Nombre del Rol"}
-        description={
-          formik.values.descripcion || "Descripción de las responsabilidades"
+        roleName={formik.values.nombre || "Nuevo Rol"}
+        actions={
+          <div className="flex items-center gap-6">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="select-all-create"
+                checked={isAllSelected}
+                onCheckedChange={handleSelectAllToggle}
+              />
+              <Label
+                htmlFor="select-all-create"
+                className="text-[11px] font-bold uppercase"
+              >
+                Seleccionar todo
+              </Label>
+            </div>
+
+            <Button type="submit" onClick={formik.handleSubmit}>
+              Guardar
+            </Button>
+          </div>
         }
-        onSave={formik.handleSubmit}
-        loading={formik.isSubmitting}
       />
 
       {/* Inputs Principales */}
@@ -110,10 +107,15 @@ const CreateRoleForm = ({ onBack, onSuccess }) => {
         </div>
       </div>
 
+      {formik.errors.permisos && formik.touched.permisos && (
+        <p className="text-xs text-red-500">{formik.errors.permisos}</p>
+      )}
+
+
       {/* Grid de Grupos de Permisos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {data?.length > 0 ? (
-          data.map((group) => (
+        {permissionsStructure?.length > 0 ? (
+          permissionsStructure.map((group) => (
             <PermissionGroup
               key={group.category}
               title={group.category}

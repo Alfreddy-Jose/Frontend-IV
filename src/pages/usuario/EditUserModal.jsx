@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ModernInput } from "@/components/shared/InputModerno";
 import { notify } from "@/components/shared/Notify";
 import SelectSearch from "@/components/shared/SelectSearch";
+import { useCapitalize } from "@/hooks/useCapitalize";
 
 export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
   const [editingUser, setEditingUser] = useState(null);
@@ -15,7 +16,9 @@ export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
 
   // Esquema de Validación con Yup
   const validationSchema = Yup.object({
-    name: Yup.string().required("El nombre es obligatorio"),
+    name: Yup.string()
+      .matches(/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/, "Solo letras permitidas")
+      .required("El nombre es obligatorio"),
     lastname: Yup.string().required("El apellido es obligatorio"),
     email: Yup.string()
       .email("Email inválido")
@@ -95,6 +98,9 @@ export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
     }
   }, [isOpen, userId]);
 
+  // Inicializar el hook pasando formik
+  const { handleCapitalizeChange } = useCapitalize(formik);
+
   return (
     <ModalFormulario
       button={false}
@@ -114,7 +120,7 @@ export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
           name="name"
           placeholder="Ej: Alfredo"
           type="text"
-          onChange={formik.handleChange}
+          onChange={handleCapitalizeChange}
           onBlur={formik.handleBlur}
           value={formik.values.name}
           className="mb-4"
@@ -134,7 +140,7 @@ export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
           name="lastname"
           type="text"
           placeholder="Ej: Gonzales"
-          onChange={formik.handleChange}
+          onChange={handleCapitalizeChange}
           onBlur={formik.handleBlur}
           value={formik.values.lastname}
           className="mb-4"

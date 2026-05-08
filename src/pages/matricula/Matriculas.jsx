@@ -5,9 +5,10 @@ import { deleteMatricula, getAllMatriculas } from "@/services/matriculaService";
 import React, { useEffect, useState } from "react";
 import { columnsMatriculas } from "./columnsMatriculas";
 import { DataTable } from "@/components/shared/Data_table";
-import CreatePnfModal from "../pnf/CreatePnfModal";
 import CreateMatriculaModal from "./CreateMatriculaModal";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
+import EditPnfModal from "../pnf/EditPnfModal";
+import EditMatriculaModal from "./EditMatriculaModal";
 
 export default function Matriculas() {
   // Estados
@@ -64,12 +65,12 @@ export default function Matriculas() {
         </div>
 
         {/* modal para Editar */}
-{/*         <EditPnfModal
+        <EditMatriculaModal
           isOpen={!!editingMatriculaId}
           matriculaId={editingMatriculaId}
           onClose={() => setEditingMatriculaId(null)}
           onSuccess={fetchMatricula}
-        /> */}
+        />
 
         {/* modal para Eliminar */}
         <AlertDialogDestructive

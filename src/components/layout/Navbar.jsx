@@ -8,18 +8,37 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { logout } from "@/services/authService";
+import { notify } from "../shared/Notify";
 
 export default function Navbar() {
   const { setTheme } = useTheme();
   const { user } = useAuth();
+
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    // Definimos la tarea asíncrona
+    const logoutAction = async () => {
+      await logout();
+      signOut();
+      // La navegación ocurre aquí, la notificación lo seguirá
+      navigate("/login");
+    };
+
+    // Usamos el nuevo notify.promise
+    notify.promise(logoutAction(), {
+      loading: "Cerrando sesión...",
+      success: "Sesión cerrada correctamente",
+      error: "Hubo un problema al salir",
+    });
+  };
 
   return (
     <nav className="bg-white border-b border-gray-100 fixed z-30 w-full dark:bg-[#020617] dark:border-slate-800/50">
@@ -61,7 +80,7 @@ export default function Navbar() {
             </button>
             {/* Logo */}
 
-{/*             <a
+            {/*             <a
               href="#"
               className="text-xl font-bold flex items-center lg:ml-2.5"
             >
@@ -95,11 +114,10 @@ export default function Navbar() {
                 ></line>
               </svg> */}
 
-              {/* <img src={logo} alt="Logo" className="h-9 w-15" /> */}
+            {/* <img src={logo} alt="Logo" className="h-9 w-15" /> */}
             {/* </a> */}
           </div>
           <div className="flex items-center space-x-4">
-
             {/* Theme Toggle */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -126,18 +144,27 @@ export default function Navbar() {
             <div className="flex items-center gap-3 pl-4 border-l border-gray-100 dark:border-slate-800/50">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-bold text-gray-800 leading-none dark:text-gray-100">{`${!user.name ? "Nombre no disponible" : user.name} ${!user.lastname ? "Apellido no disponible" : user.lastname}`}</p>
-                <p className="text-[11px] text-gray-400 font-medium mt-1">{ !user.roles[0].name ? "Rol no disponible" : user.roles[0].name }</p>
-                
+                <p className="text-[11px] text-gray-400 font-medium mt-1">
+                  {!user.roles[0].name
+                    ? "Rol no disponible"
+                    : user.roles[0].name}
+                </p>
               </div>
               <div className="relative">
-                <Avatar>
-                  <AvatarImage
-                    src=""
-                    alt="@shadcn"
-                    className="grayscale"
-                  />
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Avatar>
+                      <AvatarImage src="" alt="@shadcn" className="grayscale" />
+                      <AvatarFallback>CN</AvatarFallback>
+                    </Avatar>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleLogout}>
+                      Cerrar Sesión
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
               </div>
             </div>
@@ -146,4 +173,4 @@ export default function Navbar() {
       </div>
     </nav>
   );
-};
+}

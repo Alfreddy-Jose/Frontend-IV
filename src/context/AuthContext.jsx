@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 import Api from "../services/api";
 import { getUserData } from "@/services/authService";
 
-const isLogin = (path) => location.pathname !== path;
+const isAuthPage = () => ["/login", "/"].includes(window.location.pathname);
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -19,7 +19,7 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    if (isLogin("/login") && isLogin("/")) {
+    if (!isAuthPage()) {
       const fetchUser = async () => {
         try {
           const response = await getUserData(); 

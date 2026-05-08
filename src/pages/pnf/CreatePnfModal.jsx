@@ -7,6 +7,8 @@ import { ModalFormulario } from "@/components/shared/ModalFormulario";
 import { ModernInput } from "@/components/shared/InputModerno";
 import { Label } from "@/components/ui/label";
 import { PlusIcon } from "lucide-react";
+import { useUpperCase } from "@/hooks/useUpperCase";
+import { useCapitalize } from "@/hooks/useCapitalize";
 
 export default function CreatePnfModal({ fetchPnfs }) {
   const [openModal, setOpenModal] = useState(false);
@@ -19,10 +21,10 @@ export default function CreatePnfModal({ fetchPnfs }) {
           .matches(/^[0-9]*$/, "Solo números permitidos"),
         nombre: Yup.string().required("Este campo es obligatorio"),
         abreviado: Yup.string()
-          .min(4, "Minimo 4 carácteres")
+          .max(4, "Máximo 4 carácteres")
           .required("Este campo es obligatorio"),
         abreviado_coord: Yup.string()
-          .min(3, "Minimo 3 carácteres")
+          .max(3, "Máximo 3 carácteres")
           .required("Este campo es obligatorio"),
       }),
     [],
@@ -41,9 +43,9 @@ export default function CreatePnfModal({ fetchPnfs }) {
 
     onSubmit: async (values, { resetForm, setErrors }) => {
       try {
-        console.log("Datos para enviar al backend:", values);
-        await createPnf(values);
-        notify.success("PNF creado con éxito");
+        const response = await createPnf(values);
+        const menssageSuccess = response?.message || response?.data?.message || "PNF creado con éxito";
+        notify.success(menssageSuccess);
         fetchPnfs();
         setOpenModal(false);
         resetForm();
@@ -72,9 +74,15 @@ export default function CreatePnfModal({ fetchPnfs }) {
       formik.resetForm();
     }
   }, [openModal]);
+  
+  // Inicializar el hook de mayúsculas
+  const { handleUpperCaseChange } = useUpperCase(formik);
+
+  // Inicializar el hook de capitalización
+  const { handleCapitalizeChange } = useCapitalize(formik);
 
   return (
-    <ModalFormulario
+    <ModalFormulario 
       title="Nuevo PNF"
       description="Crear un nuevo PNF"
       TextButton="Nuevo PNF"
@@ -112,7 +120,7 @@ export default function CreatePnfModal({ fetchPnfs }) {
           name="nombre"
           type="text"
           placeholder="Ej: Programa de Formación en Informática"
-          onChange={formik.handleChange}
+          onChange={handleCapitalizeChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre}
           className="mb-4"
@@ -132,7 +140,7 @@ export default function CreatePnfModal({ fetchPnfs }) {
           name="abreviado"
           type="text"
           placeholder="Ej: PFI"
-          onChange={formik.handleChange}
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.abreviado}
           className="mb-4"
@@ -152,7 +160,7 @@ export default function CreatePnfModal({ fetchPnfs }) {
           name="abreviado_coord"
           type="text"
           placeholder="Ej: PFI-CO"
-          onChange={formik.handleChange}
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.abreviado_coord}
           className="mb-4"

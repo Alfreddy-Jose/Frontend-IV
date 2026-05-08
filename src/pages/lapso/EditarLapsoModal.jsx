@@ -262,6 +262,7 @@ export default function EditarLapsoModal({
           id="fecha_fin"
           name="fecha_fin"
           type="date"
+          min={formik.values.fecha_inicio || undefined}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.fecha_fin}

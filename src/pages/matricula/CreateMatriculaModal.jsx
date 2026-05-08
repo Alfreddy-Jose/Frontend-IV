@@ -2,6 +2,7 @@ import { ModernInput } from "@/components/shared/InputModerno";
 import { ModalFormulario } from "@/components/shared/ModalFormulario";
 import { notify } from "@/components/shared/Notify";
 import { Label } from "@/components/ui/label";
+import { useCapitalize } from "@/hooks/useCapitalize";
 import { createMatricula } from "@/services/matriculaService";
 import { useFormik } from "formik";
 import { PlusIcon } from "lucide-react";
@@ -67,7 +68,9 @@ export default function CreateMatriculaModal({ fetchMatriculas }) {
       formik.resetForm();
     }
   }, [openModal]);
-
+  
+    // Inicializar el hook de capitalización
+    const { handleCapitalizeChange } = useCapitalize(formik);
 
   return (
     <ModalFormulario
@@ -107,8 +110,8 @@ export default function CreateMatriculaModal({ fetchMatriculas }) {
           id="nombre"
           name="nombre"
           type="text"
-          placeholder="Ej: Programa de Formación en Informática"
-          onChange={formik.handleChange}
+          placeholder="Ej: Regular"
+          onChange={handleCapitalizeChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre}
           className="mb-4"
