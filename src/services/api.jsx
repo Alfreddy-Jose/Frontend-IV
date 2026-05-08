@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Configuración basica de Axios
 export const Api = axios.create({
-  baseURL: "http://localhost:8000/api", // Dirección de la Api
+  baseURL: "https://laravel-iv.onrender.com/api", // Dirección de la Api
   timeout: 5000, // tiempo máximo de espera
   headers: {
     Accept: "application/json",
