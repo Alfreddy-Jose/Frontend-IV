@@ -3,12 +3,13 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { ModernInput } from "@/components/shared/InputModerno";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import RoleHeader from "@/components/shared/RoleHeader";
 import PermissionGroup from "@/components/shared/PermissionGroup";
 import { notify } from "@/components/shared/Notify";
 import { createRole } from "@/services/rolService";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useCapitalize } from "@/hooks/useCapitalize";
 
 const CreateRoleForm = ({ onBack, onSuccess, permissionsStructure }) => {
   const formik = useFormik({
@@ -52,6 +53,8 @@ const CreateRoleForm = ({ onBack, onSuccess, permissionsStructure }) => {
       formik.setFieldValue("permisos", allPermissionIds);
     }
   };
+  // Inicializar el hook pasando formik
+  const { handleCapitalizeChange } = useCapitalize(formik);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -84,7 +87,11 @@ const CreateRoleForm = ({ onBack, onSuccess, permissionsStructure }) => {
             </div>
 
             <Button type="submit" onClick={formik.handleSubmit}>
-              Guardar
+              {formik.isSubmitting ?
+              <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Guardando... </> 
+              : "Guardar"}
             </Button>
           </div>
         }
@@ -99,7 +106,7 @@ const CreateRoleForm = ({ onBack, onSuccess, permissionsStructure }) => {
             name="nombre"
             placeholder="Ej: Administrador de PNF"
             value={formik.values.nombre}
-            onChange={formik.handleChange}
+            onChange={handleCapitalizeChange}
           />
           {formik.errors.nombre && (
             <p className="text-xs text-red-500">{formik.errors.nombre}</p>
@@ -113,7 +120,7 @@ const CreateRoleForm = ({ onBack, onSuccess, permissionsStructure }) => {
 
 
       {/* Grid de Grupos de Permisos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
         {permissionsStructure?.length > 0 ? (
           permissionsStructure.map((group) => (
             <PermissionGroup

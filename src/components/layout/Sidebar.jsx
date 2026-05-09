@@ -1,15 +1,16 @@
 import { Link, useLocation } from "react-router-dom";
-import { 
-  LayoutGrid, 
-  Users, 
-  ShelvingUnit, 
-  UserRoundKey, 
-  BookOpenText, 
+import {
+  LayoutGrid,
+  Users,
+  ShelvingUnit,
+  UserRoundKey,
+  BookOpenText,
   MapPinHouse,
   CalendarFold,
   FileText,
   Clock3,
 } from "lucide-react"; // Importamos los iconos
+import { useSidebar } from "@/context/SidebarContext";
 
 const links = [
   { name: "dashboard", href: "/", icon: LayoutGrid },
@@ -26,11 +27,15 @@ const links = [
 export default function Sidebar() {
   const location = useLocation();
 
+  const { isOpen, toggle } = useSidebar();
+
   return (
     <>
       <aside
         id="sidebar"
-        className="fixed hidden z-20 h-full top-0 left-0 pt-16 lg:flex shrink-0 flex-col w-64 transition-width duration-75"
+        className={`fixed top-0 left-0 z-20 h-full transition-transform duration-300 
+        ${isOpen ? "translate-x-0" : "-translate-x-full"} 
+        lg:translate-x-0 w-64 bg-white dark:bg-[#020617] border-r`}
         aria-label="Sidebar"
       >
         <div className="relative flex-1 flex flex-col min-h-0 border-r border-gray-100 bg-white pt-0 dark:bg-[#020617] dark:border-slate-800/50 border-slate-200">
@@ -44,6 +49,9 @@ export default function Sidebar() {
                   return (
                     <li key={link.href}>
                       <Link
+                        onClick={() => {
+                          if (isOpen) toggle();
+                        }}
                         to={link.href}
                         className={`text-sm capitalize font-medium rounded-xl flex items-center p-3 transition-all duration-200 group ${
                           isActive
@@ -71,10 +79,12 @@ export default function Sidebar() {
           </div>
         </div>
       </aside>
-      <div
-        className="bg-gray-900 opacity-50 hidden fixed inset-0 z-10"
-        id="sidebarBackdrop"
-      ></div>
+      {isOpen && (
+        <div
+          className="bg-gray-900/50 fixed inset-0 z-10 lg:hidden"
+          onClick={toggle}
+        ></div>
+      )}
     </>
   );
 }

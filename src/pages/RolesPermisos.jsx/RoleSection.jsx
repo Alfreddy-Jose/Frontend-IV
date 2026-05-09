@@ -6,7 +6,7 @@ import { notify } from "@/components/shared/Notify";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-
+import { Loader2 } from "lucide-react";
 
 const RoleSection = ({ role, permissionsStructure }) => {
   // Inicializamos los permisos marcados con los que ya trae el rol de la BD
@@ -36,7 +36,7 @@ const RoleSection = ({ role, permissionsStructure }) => {
 
   const handleSave = async () => {
     const dataToUpdate = {
-      nombre: role.name, 
+      nombre: role.name,
       permisos: selectedPermissions,
     };
     setIsSaving(true);
@@ -72,16 +72,20 @@ const RoleSection = ({ role, permissionsStructure }) => {
               </Label>
             </div>
 
-            <Button
-              onClick={() => handleSave(role.id, selectedPermissions)}
-            >
-              {isSaving ? "Guardando..." : "Guardar"}
+            <Button onClick={() => handleSave(role.id, selectedPermissions)}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...
+                </>
+              ) : (
+                "Guardar"
+              )}
             </Button>
           </div>
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
         {permissionsStructure.map((group) => (
           <PermissionGroup
             key={group.category}
