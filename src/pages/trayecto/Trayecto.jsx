@@ -12,7 +12,6 @@ export default function Trayecto() {
   // Estados
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editingTrayectoId, setEditingTrayectoId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
   const fetchTrayecto = async () => {
@@ -27,10 +26,6 @@ export default function Trayecto() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleEdit = (trayecto) => {
-    setEditingTrayectoId(trayecto.id);
   };
 
   const handleDelete = (trayecto) => {
@@ -83,7 +78,7 @@ export default function Trayecto() {
       <div className="my-4">
         {/* Tabla de Trayectos */}
         <DataTable
-          columns={columnsTrayecto(handleEdit, handleDelete)}
+          columns={columnsTrayecto(handleDelete)}
           data={data}
           filterColumn="nombre"
         />
