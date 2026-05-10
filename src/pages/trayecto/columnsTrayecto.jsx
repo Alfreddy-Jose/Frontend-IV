@@ -4,7 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
 
-export const columnsTrayecto = (onEdit, onDelete) => [
+export const columnsTrayecto = (onDelete) => [
 {
     id: "select",
     header: ({ table }) => ( 
@@ -51,12 +51,6 @@ export const columnsTrayecto = (onEdit, onDelete) => [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              onClick={() => onEdit(trayecto)}
-              className="cursor-pointer"
-            >
-              Editar
-            </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() => onDelete(trayecto)}
                 className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
