@@ -1,22 +1,13 @@
-import { MoreHorizontal } from "lucide-react";
+import React from 'react'
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { MoreHorizontal } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import { Checkbox } from "@/components/ui/checkbox";
-
-// Define las columnas para la DataTable
-export const columns = (onEdit, onDelete) => [
-  {
+export const columnsPersonas = (onEdit, onDelete) => [
+{
     id: "select",
-    header: ({ table }) => (
+    header: ({ table }) => ( 
       <Checkbox
         checked={
           table.getIsAllPageRowsSelected() ||
@@ -37,27 +28,59 @@ export const columns = (onEdit, onDelete) => [
     enableHiding: false,
   },
   {
-    accessorKey: "nro_sede",
-    header: "Número de Sede",
+    accessorKey: "cedula_persona",
+    header: "Cédula",
     cell: ({ row }) => {
-      const numero = row.getValue("nro_sede");
-      return <div className="font-medium">{numero}</div>;
+      const cedula_persona = row.getValue("cedula_persona");
+      return <div className="font-medium">{cedula_persona}</div>;
     },
   },
   {
-    accessorKey: "nombre_sede",
-    header: "Nombre de Sede",
+    accessorKey: "nombre",
+    header: "Nombre",
     cell: ({ row }) => {
-      const nombre = row.getValue("nombre_sede");
+      const nombre = row.getValue("nombre");
       return <div className="font-medium">{nombre}</div>;
     },
   },
   {
-    accessorKey: "nombre_abreviado",
-    header: "Nombre Abreviado",
+    accessorKey: "apellido",
+    header: "Apellido",
     cell: ({ row }) => {
-      const nombreAbreviado = row.getValue("nombre_abreviado");
-      return <div className="font-medium">{nombreAbreviado}</div>;
+      const apellido = row.getValue("apellido");
+      return <div className="font-medium">{apellido}</div>;
+    },
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+    cell: ({ row }) => {
+      const email = row.getValue("email");
+      return <div className="font-medium">{email}</div>;
+    },
+  },
+  {
+    accessorKey: "telefono",
+    header: "Telefono",
+    cell: ({ row }) => {
+      const telefono = row.getValue("telefono");
+      return <div className="font-medium">{telefono}</div>;
+    },
+  },
+  {
+    accessorKey: "tipo_persona",
+    header: "Tipo Persona",
+    cell: ({ row }) => {
+      const tipo_persona = row.getValue("tipo_persona");
+      return <div className="font-medium">{tipo_persona}</div>;
+    },
+  },
+  {
+    accessorKey: "grado_inst",
+    header: "Instrucción",
+    cell: ({ row }) => {
+      const grado_inst = row.getValue("grado_inst");
+      return <div className="font-medium">{grado_inst}</div>;
     },
   },
   {
@@ -74,12 +97,12 @@ export const columns = (onEdit, onDelete) => [
     cell: ({ row }) => {
       const direccion = row.getValue("direccion");
       return <div className="font-medium">{direccion}</div>;
-    }
+    },
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const sede = row.original;
+      const persona = row.original;
 
       return (
         <DropdownMenu>
@@ -92,9 +115,14 @@ export const columns = (onEdit, onDelete) => [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onEdit(sede)}>Editar</DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => onEdit(persona)}
+              className="cursor-pointer"
+            >
+              Editar
+            </DropdownMenuItem>
               <DropdownMenuItem
-                onSelect={() => onDelete(sede)} // Evita que el menú se cierre antes que el modal
+                onSelect={() => onDelete(persona)}
                 className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
               >
                 Eliminar
@@ -103,5 +131,5 @@ export const columns = (onEdit, onDelete) => [
         </DropdownMenu>
       );
     },
-  },
-];
+  },  
+]

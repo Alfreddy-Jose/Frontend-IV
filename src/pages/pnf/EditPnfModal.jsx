@@ -9,8 +9,9 @@ import { ModernInput } from "@/components/shared/InputModerno";
 import { Label } from "@/components/ui/label";
 import { useUpperCase } from "@/hooks/useUpperCase";
 import { useCapitalize } from "@/hooks/useCapitalize";
+import SelectSearch from "@/components/shared/SelectSearch";
 
-export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
+export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess, trayectos }) {
   const [editingPnf, setEditingPnf] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingPnf, setLoadingPnf] = useState(false);
@@ -28,9 +29,13 @@ export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
         abreviado_coord: Yup.string()
           .min(3, "Minimo 3 carácteres")
           .required("Este campo es obligatorio"),
+        trayectos_id: Yup.array().required("Debe seleccionar al menos un trayecto"),
       }),
     [],
   );
+
+  const getTrayectosIds = (pnfData) =>
+    pnfData?.trayectos?.map((trayecto) => trayecto.trayecto_id ?? trayecto.id) || [];
 
   // Formik para editar
   const formik = useFormik({
@@ -39,14 +44,15 @@ export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
       nombre: editingPnf?.nombre || "",
       abreviado: editingPnf?.abreviado || "",
       abreviado_coord: editingPnf?.abreviado_coord || "",
+      trayectos_id: getTrayectosIds(editingPnf),
     },
     validationSchema,
     onSubmit: async (values, { setErrors }) => {
-      console.log("Datos para actualizar:", values);
       setLoading(true);
       try {
-        await updatePnf(editingPnf.id, values);
-        notify.success("PNF actualizado con éxito.");
+        const response = await updatePnf(editingPnf.id, values);
+        const menssageSuccess = response?.message || response?.data?.message || "PNF actualizado con éxito";
+        notify.success(menssageSuccess);
         onSuccess();
         onClose();
         formik.resetForm();
@@ -81,7 +87,10 @@ export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
         setLoadingPnf(true);
         try {
           const pnfData = await getPnfById(pnfId);
-          setEditingPnf(pnfData);
+          setEditingPnf({
+            ...pnfData,
+            trayectos_id: getTrayectosIds(pnfData),
+          });
         } catch (error) {
           console.error("Error fetching pnf:", error);
           notify.error("Error al cargar los datos del PNF");
@@ -165,7 +174,7 @@ export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
           onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.abreviado}
-          className="mb-4"
+          className="mb-4" 
         />
         {formik.errors.abreviado && formik.touched.abreviado && (
           <p className="text-xs text-red-500 font-medium mb-3 mt-0">
@@ -191,6 +200,24 @@ export default function EditPnfModal({ isOpen, onClose, pnfId, onSuccess }) {
           <p className="text-xs text-red-500 font-medium mb-3 mt-0">
             {formik.errors.abreviado_coord}
           </p>
+        )}
+      </div>
+
+      {/* Select para Trayectos */}
+      <div className="space-y-2 col-span-1 md:col-span-2">
+        <Label htmlFor="trayectos_id">Trayectos</Label>
+        <SelectSearch
+          name="trayectos_id"
+          options={trayectos}
+          formik={formik}
+          isMulti={true}
+          labelKey="nombre"
+          valueKey="id"
+          placeholder="Seleccione una o más opciones"
+          className="mb-4 w-full"
+        />
+        {formik.touched.trayectos_id && formik.errors.trayectos_id && (
+          <p className="text-xs text-red-500 mt-1">{formik.errors.trayectos_id}</p>
         )}
       </div>
     </ModalFormulario>

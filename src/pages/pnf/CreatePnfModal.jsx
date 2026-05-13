@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { PlusIcon } from "lucide-react";
 import { useUpperCase } from "@/hooks/useUpperCase";
 import { useCapitalize } from "@/hooks/useCapitalize";
+import SelectSearch from "@/components/shared/SelectSearch";
 
-export default function CreatePnfModal({ fetchPnfs }) {
+export default function CreatePnfModal({ fetchPnfs, trayectos }) {
   const [openModal, setOpenModal] = useState(false);
 
   const validationSchema = useMemo(
@@ -26,6 +27,7 @@ export default function CreatePnfModal({ fetchPnfs }) {
         abreviado_coord: Yup.string()
           .max(3, "Máximo 3 carácteres")
           .required("Este campo es obligatorio"),
+        trayectos_id: Yup.array().required("Debe seleccionar al menos un trayecto"),
       }),
     [],
   );
@@ -36,6 +38,7 @@ export default function CreatePnfModal({ fetchPnfs }) {
       nombre: "",
       abreviado: "",
       abreviado_coord: "",
+      trayectos_id: trayectos ? trayectos.map(t => t.id) : [],
     },
     validationSchema,
     validateOnBlur: true,
@@ -72,8 +75,13 @@ export default function CreatePnfModal({ fetchPnfs }) {
   useEffect(() => {
     if (!openModal) {
       formik.resetForm();
+    } else {
+      // Cuando se abre el modal, seleccionar todos los trayectos por defecto
+      if (trayectos && trayectos.length > 0) {
+        formik.setFieldValue('trayectos_id', trayectos.map(t => t.id));
+      }
     }
-  }, [openModal]);
+  }, [openModal, trayectos]);
   
   // Inicializar el hook de mayúsculas
   const { handleUpperCaseChange } = useUpperCase(formik);
@@ -83,9 +91,9 @@ export default function CreatePnfModal({ fetchPnfs }) {
 
   return (
     <ModalFormulario 
-      title="Nuevo PNF"
-      description="Crear un nuevo PNF"
-      TextButton="Nuevo PNF"
+      title="Nuevo Pnf"
+      description="Crear un nuevo Pnf"
+      TextButton="Nuevo Pnf"
       icon={<PlusIcon />}
       onSubmit={formik.handleSubmit}
       open={openModal}
@@ -94,7 +102,7 @@ export default function CreatePnfModal({ fetchPnfs }) {
     >
       {/* Campos de Input */}
       <div className="space-y-2">
-        <Label htmlFor="codigo">Código del PNF</Label>
+        <Label htmlFor="codigo">Código del Pnf</Label>
         <ModernInput
           id="codigo"
           name="codigo"
@@ -114,7 +122,7 @@ export default function CreatePnfModal({ fetchPnfs }) {
 
       {/* Input Nombre del PNF */}
       <div className="space-y-2">
-        <Label htmlFor="nombre">Nombre del PNF</Label>
+        <Label htmlFor="nombre">Nombre del Pnf</Label>
         <ModernInput
           id="nombre"
           name="nombre"
@@ -134,7 +142,7 @@ export default function CreatePnfModal({ fetchPnfs }) {
 
       {/* Input Abreviado del PNF */}
       <div className="space-y-2">
-        <Label htmlFor="abreviado">Abreviado del PNF</Label>
+        <Label htmlFor="abreviado">Abreviado del Pnf</Label>
         <ModernInput
           id="abreviado"
           name="abreviado"
@@ -163,12 +171,30 @@ export default function CreatePnfModal({ fetchPnfs }) {
           onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.abreviado_coord}
-          className="mb-4"
+          className="mb-4" 
         />
         {formik.errors.abreviado_coord && formik.touched.abreviado_coord && (
           <p className="text-xs text-red-500 font-medium mb-3 mt-0">
             {formik.errors.abreviado_coord}
           </p>
+        )}
+      </div>
+
+      {/* Select para Trayectos */}
+      <div className="space-y-2 col-span-1 md:col-span-2">
+        <Label htmlFor="trayectos_id">Trayectos</Label>
+        <SelectSearch
+          name="trayectos_id"
+          options={trayectos}
+          formik={formik}
+          isMulti={true}
+          labelKey="nombre"
+          valueKey="id"
+          placeholder="Seleccione una o más opciones"
+          className="mb-4 w-full"
+        />
+        {formik.touched.trayectos_id && formik.errors.trayectos_id && (
+          <p className="text-xs text-red-500 mt-1">{formik.errors.pnf_id}</p>
         )}
       </div>
     </ModalFormulario>

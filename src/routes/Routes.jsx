@@ -11,6 +11,7 @@ import Lapso from "@/pages/lapso/Lapso";
 import Matriculas from "@/pages/matricula/Matriculas";
 import RolesPermisos from "@/pages/RolesPermisos.jsx/CrearRolesPermissions";
 import Trayecto from "@/pages/trayecto/Trayecto";
+import Personas from "@/pages/persona/Personas";
 
 export function AppRoutes() {
   return (
@@ -95,6 +96,15 @@ export function AppRoutes() {
         <ProtectedRoute>
           <Layout>
             <Trayecto />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      {/* Rutas para Persona */}
+      <Route path="/personas" element={
+        <ProtectedRoute>
+          <Layout>
+            <Personas />
           </Layout>
         </ProtectedRoute>
       } />

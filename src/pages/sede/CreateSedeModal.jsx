@@ -10,6 +10,7 @@ import { PlusIcon } from "lucide-react";
 import SelectSearch from "@/components/shared/SelectSearch";
 import { useUpperCase } from "@/hooks/useUpperCase";
 import { useCapitalize } from "@/hooks/useCapitalize";
+import { ModernTextarea } from "@/components/shared/ModernTextarea";
 
 export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados, loadMunicipios }) {
   const [openModal, setOpenModal] = useState(false);
@@ -19,7 +20,7 @@ export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados
   const cargarMunicipios = useCallback(async (estadoId) => {
     if (!estadoId) {
       setMunicipios([]);
-      return;
+      return; 
     }
 
     if (typeof loadMunicipios !== "function") {
@@ -296,7 +297,7 @@ export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados
       {/* Input Dirección width full */}
       <div className="space-y-2 col-span-1 md:col-span-2">
         <Label htmlFor="direccion">Dirección</Label>
-        <ModernInput
+        <ModernTextarea
           id="direccion"
           name="direccion"
           type="text"

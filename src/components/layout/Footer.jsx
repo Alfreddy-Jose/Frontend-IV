@@ -100,11 +100,11 @@ export default function Footer() {
         </div>
       </footer>
       <p className="text-center text-sm text-gray-500 my-10">
-        &copy; 2019-{" "}
+        &copy; 2026-{" "}
         <a href="#" className="hover:underline" target="_blank">
           Themesberg
         </a>
-        . All rights reserved.
+        . Todos los derechos reservados.
       </p>
     </>
   );

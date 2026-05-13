@@ -10,13 +10,12 @@ import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructi
 
 export default function Sedes() {
   // Estados
-  const [data, setData] = useState([]);
+  const [data, setData] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
   const [pnfs, setPnfs] = useState([]);
   const [universidad, setUniversidad] = useState(null);
   const [estados, setEstados] = useState([]);
-  
 
   const fetchSedes = async () => {
     try {

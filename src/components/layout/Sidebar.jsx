@@ -9,6 +9,7 @@ import {
   CalendarFold,
   FileText,
   Clock3,
+  UserRound,
 } from "lucide-react"; // Importamos los iconos
 import { useSidebar } from "@/context/SidebarContext";
 
@@ -22,6 +23,7 @@ const links = [
   { name: "Lapso Académico", href: "/lapsos", icon: CalendarFold },
   { name: "Matrículas", href: "/matriculas", icon: FileText },
   { name: "Trayectos", href: "/trayectos", icon: Clock3 },
+  { name: "Personas", href: "/personas", icon: UserRound},
 ];
 
 export default function Sidebar() {

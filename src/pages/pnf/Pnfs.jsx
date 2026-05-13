@@ -8,6 +8,7 @@ import CreatePnfModal from "./CreatePnfModal";
 import BreadcrumbReusable from "@/components/shared/BreadcrumbReusable";
 import EditPnfModal from "./EditPnfModal";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
+import { getAllTrayectos } from "@/services/trayectoService";
 
 export default function Pnfs() {
   // Estados
@@ -15,11 +16,12 @@ export default function Pnfs() {
   const [loading, setLoading] = useState(true);
   const [editingPnfId, setEditingPnfId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [trayectos, setTrayectos] = useState([]);
 
   const fetchPnfs = async () => {
     try {
       const users = await getAllPnfs();
-      setData(users); 
+      setData(users);
     } catch (error) {
       console.error("Error fetching users:", error);
       notify.error(
@@ -29,6 +31,21 @@ export default function Pnfs() {
       setLoading(false);
     }
   };
+
+  // fetch para traer los trayectos
+  useEffect(() => {
+    const fetchTrayectos = async () => {
+      try {
+        const trayecto = await getAllTrayectos();
+        setTrayectos(trayecto);
+      } catch (error) {
+        console.error("Error al obtener los estados:", error);
+        setTrayectos([]);
+      }
+    };
+
+    fetchTrayectos();
+  }, []);
 
   const handleEdit = (pnf) => {
     setEditingPnfId(pnf.id);
@@ -60,7 +77,7 @@ export default function Pnfs() {
 
         {/* boton de agregar PNF al lado derecho  */}
         <div className="flex justify-end">
-          <CreatePnfModal fetchPnfs={fetchPnfs} />
+          <CreatePnfModal fetchPnfs={fetchPnfs} trayectos={trayectos} />
         </div>
 
         {/* modal para Editar */}
@@ -69,10 +86,11 @@ export default function Pnfs() {
           pnfId={editingPnfId}
           onClose={() => setEditingPnfId(null)}
           onSuccess={fetchPnfs}
+          trayectos={trayectos}
         />
 
         {/* modal para Eliminar */}
-        <AlertDialogDestructive
+        <AlertDialogDestructive 
           isOpen={!!deletingId}
           id={deletingId}
           onClose={() => setDeletingId(null)}
