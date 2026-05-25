@@ -4,6 +4,10 @@ export const getAllLapsos = async () => {
   const response = await api.get('/lapsos');
   return response.data;
 }
+export const getActivosLapsos = async () => {
+  const response = await api.get('/lapsos/activos');
+  return response.data;
+}
 
 export const createLapso = async (lapsoData) => {
   const response = await api.post('/lapso', lapsoData);

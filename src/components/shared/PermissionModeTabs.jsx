@@ -10,13 +10,13 @@ const PermissionModeTabs = ({ mode, onModeChange }) => {
             value="role" 
             className="flex-1 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm transition-all text-xs font-bold uppercase tracking-tight"
           >
-            By Role
+            Por Rol
           </TabsTrigger>
           <TabsTrigger 
             value="user" 
             className="flex-1 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:shadow-sm transition-all text-xs font-bold uppercase tracking-tight"
           >
-            By User
+            Por Usuario
           </TabsTrigger>
         </TabsList>
       </Tabs>

@@ -6,7 +6,7 @@ import { notify } from "@/components/shared/Notify";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 
 const RoleSection = ({ role, permissionsStructure }) => {
   // Inicializamos los permisos marcados con los que ya trae el rol de la BD
@@ -78,7 +78,10 @@ const RoleSection = ({ role, permissionsStructure }) => {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...
                 </>
               ) : (
-                "Guardar"
+                <>
+                <Save />
+                Guardar
+                </>
               )}
             </Button>
           </div>

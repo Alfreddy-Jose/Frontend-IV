@@ -6,7 +6,9 @@ import { Plus } from "lucide-react";
 import PermissionModeTabs from "@/components/shared/PermissionModeTabs";
 import CreateRoleForm from "./CreateRolesForm";
 import { getAllRolesPermisos } from "@/services/rolService";
+import { getAllUsers } from "@/services/userService";
 import RoleSection from "./RoleSection";
+import UserPermissionSection from "./UserPermissionSection";
 import RolesSkeleton from "@/components/shared/RolesSkeleton";
 
 const RolesPermissions = () => {
@@ -15,6 +17,7 @@ const RolesPermissions = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState([]);
   const [rolesList, setRolesList] = useState([]);
+  const [usersList, setUsersList] = useState([]);
 
   const breadcrumbItems = [
     { label: "Home", href: "/" },
@@ -45,9 +48,27 @@ const RolesPermissions = () => {
     }
   };
 
+  /* cargar usuarios */
+  const fetchUsers = async () => {
+    try {
+      const users = await getAllUsers();
+      setUsersList(Array.isArray(users) ? users : users?.data || []);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      notify.error("Error al obtener los usuarios.");
+    }
+  };
+
   useEffect(() => {
     fetchRoles();
+    fetchUsers();
   }, []);
+
+  /* Resetear vista al cambiar de tab */
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    setView("list");
+  };
 
   if (loading) {
     return (
@@ -67,13 +88,13 @@ const RolesPermissions = () => {
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* Toggle (By Role / By User) - Alineado a la izquierda */}
+        {/* Toggle By Role / By User - Alineado a la izquierda */}
         <div className="w-full md:w-auto md:translate-y-[7px]">
-          <PermissionModeTabs mode={activeTab} onModeChange={setActiveTab} />
+          <PermissionModeTabs mode={activeTab} onModeChange={handleTabChange} />
         </div>
 
-        {/* Botón de Acción - Alineado a la derecha */}
-        {view === "list" && (
+        {/* Botón de Acción - Solo visible en modo "role" y vista "list" */}
+        {activeTab === "role" && view === "list" && (
           <div className="flex justify-end pb-[7px]">
             <Button onClick={() => setView("create")} variant="outline">
               <Plus className="w-4 h-4 mr-2" />
@@ -84,24 +105,33 @@ const RolesPermissions = () => {
       </div>
 
       <div className="mt-2">
-        {view === "list" ? (
-          <div className="space-y-12">
-            {rolesList.map((role) => (
-              <RoleSection
-                key={role.id}
-                role={role}
-                permissionsStructure={data}
-              />
-            ))}
-          </div>
+        {activeTab === "role" ? (
+          /* ——— CONTENIDO: POR ROL ——— */
+          view === "list" ? (
+            <div className="space-y-12">
+              {rolesList.map((role) => (
+                <RoleSection
+                  key={role.id}
+                  role={role}
+                  permissionsStructure={data}
+                />
+              ))}
+            </div>
+          ) : (
+            <CreateRoleForm
+              permissionsStructure={data}
+              onBack={() => setView("list")}
+              onSuccess={() => {
+                setView("list");
+                fetchRoles();
+              }}
+            />
+          )
         ) : (
-          <CreateRoleForm
+          /* CONTENIDO: POR USUARIO */
+          <UserPermissionSection
+            users={usersList}
             permissionsStructure={data}
-            onBack={() => setView("list")}
-            onSuccess={() => {
-              setView("list");
-              fetchRoles();
-            }}
           />
         )}
       </div>

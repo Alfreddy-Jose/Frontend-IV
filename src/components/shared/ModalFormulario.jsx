@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { FieldGroup } from "@/components/ui/field";
 import { SkeletonFormulario } from "./SkeletonFormulario";
-import { Loader2 } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 
 export function ModalFormulario({
   TextButton,
@@ -44,15 +44,20 @@ export function ModalFormulario({
       {/* Button para abrir formulario modal */}
       {button && (
         <DialogTrigger asChild>
-          <Button variant="outline">
+          <Button
+            className="capitalize"
+            variant="outline"
+            title={`Agregar ${TextButton}`}
+          >
             {icon && <span>{icon}</span>}
             {TextButton}
           </Button>
         </DialogTrigger>
       )}
 
+
       {/* Contenido del formulario modal */}
-      <DialogContent className={`${tamaño}`}>
+      <DialogContent className={`capitalize ${tamaño}`}>
         <form onSubmit={onSubmit}>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
@@ -60,8 +65,8 @@ export function ModalFormulario({
           </DialogHeader>
 
           {/* Inputs*/}
-          <div className="max-h-[60vh] overflow-y-auto mt-4">
-            <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="max-h-[60vh] overflow-y-auto mt-4 pr-1">
+            <FieldGroup className="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-3">
               {children}
             </FieldGroup>
           </div>
@@ -69,18 +74,21 @@ export function ModalFormulario({
           {/* Footer del modal */}
           <DialogFooter className="mt-4">
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" title={`Cancelar ${TextButton}`}>
                 Cancelar
               </Button> 
             </DialogClose>
-            <Button type="submit">
+            <Button type="submit" title={`Guardar ${TextButton}`}>
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Guardando...
                 </>
               ) : (
-                "Guardar"
+                <>
+                  <Save />
+                  Guardar
+                </>
               )}
             </Button>
           </DialogFooter>

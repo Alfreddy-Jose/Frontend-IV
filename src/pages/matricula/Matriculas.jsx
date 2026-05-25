@@ -7,8 +7,8 @@ import { columnsMatriculas } from "./columnsMatriculas";
 import { DataTable } from "@/components/shared/Data_table";
 import CreateMatriculaModal from "./CreateMatriculaModal";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
-import EditPnfModal from "../pnf/EditPnfModal";
 import EditMatriculaModal from "./EditMatriculaModal";
+import { Guard } from "@/components/shared/Guard";
 
 export default function Matriculas() {
   // Estados
@@ -54,15 +54,17 @@ export default function Matriculas() {
 
   return (
     <div>
-      <h1 className="mb-4 font-sans text-3xl font-semibold">Matrículas</h1>
+      <h1 className="mb-4 font-sans text-3xl capitalize font-semibold">Matrículas</h1>
       <div className="flex flex-col gap-4 mb-8 md:flex-row md:items-center md:justify-between">
         {/* Breadcrumb para la Navegación  */}
         <BreadcrumbReusable items={items} />
 
-        {/* boton de agregar PNF al lado derecho  */}
-        <div className="flex justify-end">
-          <CreateMatriculaModal fetchMatriculas={fetchMatricula} />
-        </div>
+        {/* Boton para crear una Matricula */}
+        <Guard requiredPermissions="Tipo Matricula.crear">
+          <div className="flex justify-end">
+            <CreateMatriculaModal fetchMatriculas={fetchMatricula} />
+          </div>
+        </Guard>
 
         {/* modal para Editar */}
         <EditMatriculaModal

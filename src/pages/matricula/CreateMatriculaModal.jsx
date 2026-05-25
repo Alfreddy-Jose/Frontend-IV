@@ -84,12 +84,12 @@ export default function CreateMatriculaModal({ fetchMatriculas }) {
       loading={formik.isSubmitting}
     >
       {/* Input del numero matricula */}
-      <div className="space-y-2">
+      <div className=" md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="numero">Número de la Matrícula</Label>
         <ModernInput
           id="numero"
           name="numero"
-          placeholder="Ej: 8"
+          placeholder="EJ: 8"
           type="text"
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
@@ -104,13 +104,13 @@ export default function CreateMatriculaModal({ fetchMatriculas }) {
       </div>
 
       {/* Input Nombre de Matricula */}
-      <div className="space-y-2">
+      <div className="md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="nombre">Nombre de la Matrícula</Label>
         <ModernInput
           id="nombre"
           name="nombre"
           type="text"
-          placeholder="Ej: Regular"
+          placeholder="EJ: REGULAR"
           onChange={handleCapitalizeChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre}

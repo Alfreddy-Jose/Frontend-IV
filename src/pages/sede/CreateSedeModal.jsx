@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { PlusIcon } from "lucide-react";
 import SelectSearch from "@/components/shared/SelectSearch";
 import { useUpperCase } from "@/hooks/useUpperCase";
-import { useCapitalize } from "@/hooks/useCapitalize";
 import { ModernTextarea } from "@/components/shared/ModernTextarea";
 
 export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados, loadMunicipios }) {
@@ -132,9 +131,6 @@ export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados
   // Inicializar el hook de mayúsculas
   const { handleUpperCaseChange } = useUpperCase(formik);
 
-  // Inicializar el hook de capitalización
-  const { handleCapitalizeChange } = useCapitalize(formik);
-
   return (
     <ModalFormulario
       title="Nueva Sede"
@@ -147,7 +143,7 @@ export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados
       loading={formik.isSubmitting}
     >
       {/* Input Oculto de Universidad */}
-      <div className="space-y-2" hidden>
+      <div className="hidden">
         <Label htmlFor="universidad_id">Universidad</Label>
         <ModernInput
           id="universidad_id"
@@ -157,77 +153,121 @@ export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.universidad_id}
-          className="mb-4"
         />
         {formik.errors.universidad_id && formik.touched.universidad_id && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.universidad_id}
           </p>
         )}
       </div>
 
       {/* Input Número Sede */}
-      <div className="space-y-2">
+      <div className="md:col-span-3 space-y-1 flex flex-col">
         <Label htmlFor="nro_sede">Número Sede</Label>
         <ModernInput
           id="nro_sede"
           name="nro_sede"
           type="text"
-          placeholder="Ej: 003"
+          placeholder="Ej: 300"
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.nro_sede}
-          className="mb-4"
         />
         {formik.errors.nro_sede && formik.touched.nro_sede && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.nro_sede}
-          </p>
+          </p> 
         )}
       </div>
 
       {/* Input Nombre Sede */}
-      <div className="space-y-2">
+      <div className="md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="nombre_sede">Nombre Sede</Label>
         <ModernInput
           id="nombre_sede"
           name="nombre_sede"
           type="text"
-          placeholder="Ej: Sede Central"
-          onChange={handleCapitalizeChange}
+          placeholder="Ej: SEDE CENTRAL"
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre_sede}
-          className="mb-4"
         />
         {formik.errors.nombre_sede && formik.touched.nombre_sede && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.nombre_sede}
           </p>
         )}
       </div>
 
       {/* Input Nombre Abreviado */}
-      <div className="space-y-2">
+      <div className="md:col-span-3 space-y-1 flex flex-col">
         <Label htmlFor="nombre_abreviado">Nombre Abreviado</Label>
         <ModernInput
           id="nombre_abreviado"
           name="nombre_abreviado"
           type="text"
-          placeholder="Ej: SDC"
+          placeholder="EJ: SDC"
           onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre_abreviado}
-          className="mb-4"
         />
         {formik.errors.nombre_abreviado && formik.touched.nombre_abreviado && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.nombre_abreviado}
           </p>
         )}
       </div>
 
+      {/* Select Estado */}
+      <div className="md:col-span-6 space-y-1 flex flex-col">
+        <Label htmlFor="estado_id">Estado</Label>
+        <SelectSearch
+          name="estado_id"
+          options={estados}
+          formik={formik}
+          labelKey="estado"
+          valueKey="id_estado"
+          placeholder="Seleccione un estado"
+        />
+        {formik.touched.estado_id && formik.errors.estado_id && (
+          <p className="text-xs text-red-500 font-medium">{formik.errors.estado_id}</p>
+        )}
+      </div>
+
+      {/* Select Municipio */}
+      <div className="md:col-span-6 space-y-1 flex flex-col">
+        <Label htmlFor="municipio_id">Municipio</Label>
+        <SelectSearch
+          name="municipio_id"
+          placeholder={
+            !formik.values.estado_id
+              ? "Primero seleccione un estado"
+              : loadingMunicipios
+                ? "Cargando municipios..."
+                : municipios?.length === 0
+                  ? "No hay municipios"
+                  : "Seleccione un municipio"
+          }
+          options={municipios}
+          labelKey="municipio"
+          valueKey="id_municipio"
+          value={formik.values.municipio_id}
+          formik={formik}
+          disabled={
+            !formik.values.estado_id ||
+            loadingMunicipios ||
+            municipios?.length === 0
+          }
+        />
+        {formik.touched.municipio_id && formik.errors.municipio_id && (
+          <p className="text-xs text-red-500 font-medium">
+            {formik.errors.municipio_id}
+          </p>
+        )}
+      </div>
+
       {/* Select para PNFS */}
-      <div className="space-y-2">
+      <div className="md:col-span-12 space-y-1 flex flex-col">
         <Label htmlFor="pnf_id">PNFS</Label>
         <SelectSearch
           name="pnf_id"
@@ -237,78 +277,26 @@ export default function CreateSedeModal({ fetchSedes, pnfs, universidad, estados
           labelKey="nombre"
           valueKey="id"
           placeholder="Seleccione una o más opciones"
-          className="mb-4"
         />
         {formik.touched.pnf_id && formik.errors.pnf_id && (
-          <p className="text-xs text-red-500 mt-1">{formik.errors.pnf_id}</p>
-        )}
-      </div>
-
-      {/* Select Estado */}
-      <div className="space-y-2">
-        <Label htmlFor="estado_id">Estado</Label>
-        <SelectSearch
-          name="estado_id"
-          options={estados}
-          formik={formik}
-          labelKey="estado"
-          valueKey="id_estado"
-          placeholder="Seleccione un estado"
-          className="mb-4"
-        />
-        {formik.touched.estado_id && formik.errors.estado_id && (
-          <p className="text-xs text-red-500 mt-1">{formik.errors.estado_id}</p>
-        )}
-      </div>
-
-      {/* Select Municipio */}
-      <div className="space-y-2">
-        <Label htmlFor="municipio_id">Municipio</Label>
-        <SelectSearch
-          name="municipio_id"
-          placeholder={
-            !formik.values.estado_id
-              ? "PRIMERO SELECCIONE UN ESTADO"
-              : loadingMunicipios
-                ? "CARGANDO MUNICIPIOS..."
-                : municipios?.length === 0
-                  ? "NO HAY MUNICIPIOS"
-                  : "SELECCIONE UN MUNICIPIO"
-          }
-          options={municipios}
-          labelKey="municipio"
-          valueKey="id_municipio"
-          value={formik.values.municipio_id}
-          formik={formik}
-          className="mb-4"
-          disabled={
-            !formik.values.estado_id ||
-            loadingMunicipios ||
-            municipios?.length === 0
-          }
-        />
-        {formik.touched.municipio_id && formik.errors.municipio_id && (
-          <p className="text-xs text-red-500 mt-1">
-            {formik.errors.municipio_id}
-          </p>
+          <p className="text-xs text-red-500 font-medium">{formik.errors.pnf_id}</p>
         )}
       </div>
 
       {/* Input Dirección width full */}
-      <div className="space-y-2 col-span-1 md:col-span-2">
+      <div className="md:col-span-12 space-y-1 flex flex-col">
         <Label htmlFor="direccion">Dirección</Label>
         <ModernTextarea
           id="direccion"
           name="direccion"
           type="text"
-          placeholder="Ej: Calle Principal, Número 123"
-          onChange={handleCapitalizeChange}
+          placeholder="EJ: CALLE PRINCIPAL, NÚMERO 123"
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.direccion}
-          className="mb-4 w-full"
         />
         {formik.errors.direccion && formik.touched.direccion && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.direccion}
           </p>
         )}

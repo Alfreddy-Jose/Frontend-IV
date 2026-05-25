@@ -14,9 +14,10 @@ import {
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from '@/components/ui/badge';
+import { Guard } from '@/components/shared/Guard';
 
 export const columnsLapso = (onEdit, onDelete) => [
-{
+  {
     id: "select",
     header: ({ table }) => (
       <Checkbox
@@ -85,30 +86,36 @@ export const columnsLapso = (onEdit, onDelete) => [
       const lapso = row.original;
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onEdit(lapso)}
-              className="cursor-pointer"
-            >
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() => onDelete(lapso)}
-              className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
-            >
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Guard requiredPermissions={["lapso.editar", "lapso.eliminar"]}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Abrir menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <Guard requiredPermissions="lapso.editar">
+                <DropdownMenuItem
+                  onClick={() => onEdit(lapso)}
+                  className="cursor-pointer"
+                >
+                  Editar
+                </DropdownMenuItem>
+              </Guard>
+              <Guard requiredPermissions="lapso.eliminar">
+                <DropdownMenuItem
+                  onSelect={() => onDelete(lapso)}
+                  className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
+                >
+                  Eliminar
+                </DropdownMenuItem>
+              </Guard>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </Guard>
       );
     },
   },

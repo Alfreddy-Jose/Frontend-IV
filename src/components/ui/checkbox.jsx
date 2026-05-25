@@ -1,35 +1,6 @@
-/* import * as React from "react"
-import { CheckIcon } from "lucide-react"
-import { Checkbox as CheckboxPrimitive } from "radix-ui"
-
-import { cn } from "@/lib/utils"
-
-function Checkbox({
-  className,
-  ...props
-}) {
-  return (
-    <CheckboxPrimitive.Root
-      data-slot="checkbox"
-      className={cn(
-        "peer size-4 shrink-0 rounded-[4px] border border-input shadow-xs transition-shadow outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:bg-input/30 dark:aria-invalid:ring-destructive/40 dark:data-[state=checked]:bg-primary",
-        className
-      )}
-      {...props}>
-      <CheckboxPrimitive.Indicator
-        data-slot="checkbox-indicator"
-        className="grid place-content-center text-current transition-none">
-        <CheckIcon className="size-3.5" />
-      </CheckboxPrimitive.Indicator>
-    </CheckboxPrimitive.Root>
-  );
-}
-
-export { Checkbox } */
-
 import * as React from "react"
 import { CheckIcon } from "lucide-react"
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox" // Asegúrate de que la importación sea correcta según tu versión
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox" 
 
 import { cn } from "@/lib/utils"
 
@@ -41,17 +12,17 @@ function Checkbox({
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        // Tamaño y bordes redondeados similares a los bordes de tus inputs
+        // Mantiene exactamente su tamaño actual (size-5) y bordes redondeados suave
         "peer size-5 shrink-0 rounded-md transition-all duration-200 outline-none",
         
-        // Colores de fondo y bordes (Copiando la estética de ModernInput)
-        "border-none bg-gray-200 dark:bg-slate-800/40",
+        // Clonado de la estética de InputModerno_3 (Bordes reales y fondo slate)
+        "border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/60",
         
-        // Estado de Enfoque (Focus) - Línea de color primary o anillo suave
-        "focus-visible:ring-2 focus-visible:ring-primary/50",
+        // Estado de Enfoque (Focus) adaptado a la paleta Índigo
+        "focus-visible:ring-2 focus-visible:ring-indigo-500/50 dark:focus-visible:ring-indigo-400/50",
         
-        // Estado Marcado (Checked)
-        "data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
+        // Estado Marcado (Checked) - Ahora usa el Indigo de tus otros componentes
+        "data-[state=checked]:bg-indigo-600 dark:data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-600 dark:data-[state=checked]:border-indigo-500 text-white",
         
         // Deshabilitado
         "disabled:cursor-not-allowed disabled:opacity-50",

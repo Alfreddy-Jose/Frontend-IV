@@ -23,6 +23,8 @@ const buttonVariants = cva(
         ghost: "hover:bg-gray-100 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-100",
         
         link: "text-indigo-600 underline-offset-4 hover:underline dark:text-indigo-400",
+        // variante exportar
+        exportar: "bg-red-500 text-white shadow hover:bg-red-600 dark:bg-red-500 dark:hover:bg-red-400", 
       },
       size: {
         default: "h-11 px-5 py-2 text-sm",

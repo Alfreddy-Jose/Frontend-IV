@@ -1,4 +1,4 @@
-import Select from "react-select";
+import Select, { components } from "react-select";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme"; // Importamos el hook de tema
 
@@ -46,26 +46,36 @@ function SelectSearch({
     formik.setFieldTouched(name, true, false);
   };
 
-  // Configuración de estilos dinámicos basados en isDark
+// Configuración de estilos dinámicos basados en isDark
   const customStyles = {
     control: (base) => ({
       ...base,
       border: 0,
       boxShadow: "none",
       background: "transparent",
-      minHeight: "44px",
+      minHeight: "34px", 
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      padding: "2px 12px", 
     }),
     // Estilo del contenedor del menú (Dropdown)
     menu: (base) => ({
       ...base,
-      backgroundColor: isDark ? "#0f172a" : "white", // Fondo oscuro similar a Notify
+      backgroundColor: isDark ? "#0f172a" : "white", 
       border: `1px solid ${isDark ? "#334155" : "#e2e8f0"}`,
       zIndex: 9999,
-      pointerEvents: "auto", // <--- Obliga a que acepte clics
+      pointerEvents: "auto", 
     }),
-    // Estilo de las opciones individuales
+    // Estilo de las opciones individuales (CORREGIDO PARA ENCAJAR CON EL TAMAÑO COMPACTO)
     option: (base, { isFocused, isSelected }) => ({
       ...base,
+      padding: "6px 12px", // 👈 Reducido el padding vertical para que las filas sean más delgadas
+      fontSize: "0.75rem", // 👈 Equivalente a text-xs por defecto
+      // Un media query nativo para emular el comportamiento 'md:text-sm' de Tailwind
+      "@media (min-width: 768px)": {
+        fontSize: "0.875rem", // 👈 Equivalente a text-sm
+      },
       backgroundColor: isSelected
         ? "#3b82f6"
         : isFocused
@@ -83,30 +93,69 @@ function SelectSearch({
       ...base,
       color: isDark ? "#f1f5f9" : "#1e293b",
     }),
+    // Estilo del contenedor de la opción seleccionada (la cajita)
+    multiValue: (base) => ({
+      ...base,
+      backgroundColor: isDark ? "#334155" : "#e2e8f0", 
+      borderRadius: "8px",
+    }),
+    // Estilo del texto dentro de la cajita seleccionada
+    multiValueLabel: (base) => ({
+      ...base,
+      color: isDark ? "#ffffff" : "#1e293b", 
+      paddingLeft: "8px",
+      paddingRight: "8px",
+    }),
+    // Estilo del botón de eliminar (la 'X') de la cajita
+    multiValueRemove: (base) => ({
+      ...base,
+      color: isDark ? "#94a3b8" : "#6b7280",
+      borderRadius: "0 8px 8px 0",
+      ":hover": {
+        backgroundColor: isDark ? "#ef4444" : "#fca5a5",
+        color: "white",
+      },
+    }),
     input: (base) => ({
       ...base,
       color: isDark ? "#f1f5f9" : "#1e293b",
+      margin: "0px",
+      padding: "0px",
     }),
     placeholder: (base) => ({
       ...base,
       color: isDark ? "#94a3b8" : "#6b7280",
+      textTransform: "capitalize",
     }),
     menuPortal: (base) => ({
       ...base,
       zIndex: 9999,
     }),
+    menuList: (base) => ({
+      ...base,
+      maxHeight: "180px", // Reducido de 220px a 180px para que el menú desplegable no sea tan alto e invasivo
+      overflowY: "auto",
+      paddingTop: "4px",    // Remueve espacios muertos internos superiores
+      paddingBottom: "4px", // Remueve espacios muertos internos inferiores
+    }),
     indicatorSeparator: () => ({ display: "none" }),
+    dropdownIndicator: (base) => ({
+      ...base,
+      padding: "4px 8px", 
+    }),
+    clearIndicator: (base) => ({
+      ...base,
+      padding: "4px",
+    }),
   };
 
   return (
     <div className={cn("group relative w-full", div_style)}>
       <div
         className={cn(
-          "relative flex items-center w-full rounded-xl overflow-hidden transition-all",
-          // MODO CLARO: bg-gray-200, texto oscuro
-          // MODO OSCURO: bg-slate-800/40, texto claro
-          "bg-gray-200 text-gray-900 dark:bg-slate-800/40 dark:text-slate-100",
-          "focus-within:bg-gray-100 dark:focus-within:bg-slate-800/60 shadow-sm",
+          "relative flex items-center w-full rounded-xl overflow-hidden transition-all border border-slate-200 dark:border-slate-800",
+          // Estilo clonado exactamente de InputModerno
+          "bg-slate-100 dark:bg-slate-900/60 focus-within:bg-white dark:focus-within:bg-slate-950/40 shadow-sm",
           disabled && "opacity-50 cursor-not-allowed",
           // Variables CSS para que React-Select las use internamente
           "[--menu-bg:white] dark:[--menu-bg:#1e293b]",
@@ -121,7 +170,7 @@ function SelectSearch({
           id={name}
           instanceId={name}
           name={name}
-          className="peer w-full text-sm"
+          className="peer w-full text-xs md:text-sm" // Escalado tipográfico idéntico al Input
           classNamePrefix="react-select"
           value={getSelectedValues()}
           options={selectOptions}
@@ -129,16 +178,30 @@ function SelectSearch({
           placeholder={placeholder}
           onChange={handleChange}
           isMulti={isMulti}
-          onBlur={() => formik.setFieldTouched(name, true, false)}
+          onBlur={() => formik.setFieldTouched(name, true, true)}
           isClearable
           menuPosition="fixed"
           menuPortalTarget={
             typeof document !== "undefined" ? document.body : null
           }
+          components={{
+            MenuList: ({ children, ...props }) => (
+              <components.MenuList
+                {...props}
+                innerProps={{
+                  ...props.innerProps,
+                  onWheel: (e) => e.stopPropagation(),
+                }}
+              >
+                {children}
+              </components.MenuList>
+            ),
+          }}
           styles={customStyles}
         />
 
-        <span className="absolute bottom-0 left-1/2 h-[2.5px] w-0 bg-primary transition-all duration-300 ease-in-out peer-focus-within:left-0 peer-focus-within:w-full" />
+        {/* Línea animada: idéntica a InputModerno */}
+        <span className="absolute bottom-0 left-1/2 h-[2.5px] w-0 bg-indigo-600 dark:bg-indigo-500 transition-all duration-300 ease-in-out peer-focus-within:left-0 peer-focus-within:w-full" />
       </div>
     </div>
   );

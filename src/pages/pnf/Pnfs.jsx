@@ -9,6 +9,7 @@ import BreadcrumbReusable from "@/components/shared/BreadcrumbReusable";
 import EditPnfModal from "./EditPnfModal";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
 import { getAllTrayectos } from "@/services/trayectoService";
+import { Guard } from "@/components/shared/Guard";
 
 export default function Pnfs() {
   // Estados
@@ -20,12 +21,12 @@ export default function Pnfs() {
 
   const fetchPnfs = async () => {
     try {
-      const users = await getAllPnfs();
-      setData(users);
+      const pnfs = await getAllPnfs();
+      setData(pnfs);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching pnfs:", error);
       notify.error(
-        "Error al obtener los usuarios. Por favor, inténtalo de nuevo.",
+        "Error al obtener los pnfs. Por favor, inténtalo de nuevo.",
       );
     } finally {
       setLoading(false);
@@ -70,15 +71,17 @@ export default function Pnfs() {
 
   return (
     <div>
-      <h1 className="mb-4 font-sans text-3xl font-semibold">Pnfs</h1>
+      <h1 className="mb-4 font-sans capitalize text-3xl font-semibold">Pnfs</h1>
       <div className="flex flex-col gap-4 mb-8 md:flex-row md:items-center md:justify-between">
         {/* Breadcrumb para la Navegación  */}
         <BreadcrumbReusable items={items} />
 
         {/* boton de agregar PNF al lado derecho  */}
-        <div className="flex justify-end">
-          <CreatePnfModal fetchPnfs={fetchPnfs} trayectos={trayectos} />
-        </div>
+        <Guard requiredPermissions="pnf.crear"> 
+          <div className="flex justify-end">
+            <CreatePnfModal fetchPnfs={fetchPnfs} trayectos={trayectos} />
+          </div>
+        </Guard>
 
         {/* modal para Editar */}
         <EditPnfModal
@@ -98,6 +101,7 @@ export default function Pnfs() {
           deleteFunction={deletePnf}
         />
       </div>
+      
       <div className="my-4">
         {/* Tabla de Usuarios */}
         <DataTable
