@@ -8,6 +8,7 @@ import { SkeletonTable } from "@/components/shared/SkeletonTable";
 import { notify } from "@/components/shared/Notify";
 import CreateUserModal from "./CreateUserModal";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
+import { Guard } from "@/components/shared/Guard";
 
 function Users() {
   // Estados
@@ -62,15 +63,17 @@ function Users() {
 
   return (
     <div>
-      <h1 className="mb-4 font-sans text-3xl font-semibold">Usuarios</h1>
+      <h1 className="mb-4 font-sans text-3xl capitalize font-semibold">Usuarios</h1>
       <div className="flex flex-col gap-4 mb-8 md:flex-row md:items-center md:justify-between">
         {/* Breadcrumb para la Navegación  */}
         <BreadcrumbReusable items={items} />
 
         {/* boton de agregar usuario al lado derecho  */}
-        <div className="flex justify-end">
-          <CreateUserModal fetchUsers={fetchUsers} roles={roles} />
-        </div>
+        <Guard requiredPermissions="usuario.crear">
+          <div className="flex justify-end">
+            <CreateUserModal fetchUsers={fetchUsers} roles={roles} />
+          </div>
+        </Guard>
 
         {/* modal para Editar */}
         <EditUserModal

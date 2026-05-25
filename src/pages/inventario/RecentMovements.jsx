@@ -1,4 +1,3 @@
-import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, LogIn, LogOut, ArrowLeftRight } from "lucide-react";

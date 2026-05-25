@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { Guard } from "@/components/shared/Guard";
 
 // Define las columnas para la DataTable
 export const columns = (onEdit, onDelete) => [
@@ -41,15 +42,7 @@ export const columns = (onEdit, onDelete) => [
     header: "Nombre",
     cell: ({ row }) => {
       const nombre = row.getValue("name");
-      return <div className="font-medium">{nombre}</div>;
-    },
-  },
-  {
-    accessorKey: "lastname",
-    header: "Apellido",
-    cell: ({ row }) => {
-      const apellido = row.getValue("lastname");
-      return <div className="font-medium">{apellido}</div>;
+      return <div className="font-medium uppercase">{nombre}</div>;
     },
   },
   {
@@ -74,30 +67,36 @@ export const columns = (onEdit, onDelete) => [
       const user = row.original;
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onEdit(user)}
-              className="cursor-pointer"
-            >
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() => onDelete(user)}
-              className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
-            >
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Guard requiredPermissions={["usuario.editar", "usuario.eliminar"]}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Abrir menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <Guard requiredPermissions="usuario.editar">
+                <DropdownMenuItem
+                  onClick={() => onEdit(user)}
+                  className="cursor-pointer"
+                >
+                  Editar
+                </DropdownMenuItem>
+              </Guard>
+              <Guard requiredPermissions="usuario.eliminar">
+                <DropdownMenuItem
+                  onSelect={() => onDelete(user)}
+                  className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
+                >
+                  Eliminar
+                </DropdownMenuItem>
+              </Guard>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </Guard>
       );
     },
   },

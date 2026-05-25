@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
+import { Guard } from '@/components/shared/Guard';
 
 export const columnsTrayecto = (onDelete) => [
-{
+  {
     id: "select",
-    header: ({ table }) => ( 
+    header: ({ table }) => (
       <Checkbox
         checked={
           table.getIsAllPageRowsSelected() ||
@@ -41,25 +42,29 @@ export const columnsTrayecto = (onDelete) => [
       const trayecto = row.original;
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={() => onDelete(trayecto)}
-                className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
-              >
-                Eliminar
-              </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Guard requiredPermissions="trayecto.eliminar">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Abrir menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <Guard requiredPermissions="trayecto.eliminar">
+                <DropdownMenuItem
+                  onSelect={() => onDelete(trayecto)}
+                  className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
+                >
+                  Eliminar
+                </DropdownMenuItem>
+              </Guard>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </Guard>
       );
     },
-  },  
+  },
 ]

@@ -16,6 +16,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Search,
   Trash2,
 } from "lucide-react";
 
@@ -38,12 +39,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export function DataTable({ columns, data, filterColumn, statusFilterColumn = "status", statusFilterOptions }) {
+export function DataTable({ columns, data, filterColumn }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
-  const [columnSelection, setColumnSelection] = React.useState("");
   const [rowSelection, setRowSelection] = React.useState({});
-  
+
   const hasRowSelection = Object.keys(rowSelection).length > 0;
 
   const table = useReactTable({
@@ -70,14 +70,14 @@ export function DataTable({ columns, data, filterColumn, statusFilterColumn = "s
         {filterColumn && table.getColumn(filterColumn) && (
           <div className="relative w-full max-w-sm">
             <ModernInput
+              className="[&_input]:pl-9"
               placeholder={`Buscar por ${filterColumn}...`}
               value={table.getColumn(filterColumn)?.getFilterValue() ?? ""}
               onChange={(event) => {
-                setColumnSelection("all");
-                table.getColumn("status")?.setFilterValue(undefined);
                 table.getColumn(filterColumn)?.setFilterValue(event.target.value);
               }}
             />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none z-10" />
           </div>
         )}
 
@@ -96,27 +96,6 @@ export function DataTable({ columns, data, filterColumn, statusFilterColumn = "s
               <Trash2 />  Eliminar
             </Button>
           )}
-
-          {statusFilterOptions && statusFilterOptions.length > 0 && table.getColumn(statusFilterColumn) && (
-            <Select
-              value={columnSelection}
-              onValueChange={(value) => {
-                setColumnSelection(value);
-                table.getColumn(statusFilterColumn)?.setFilterValue(value === "all" ? undefined : value);
-              }}
-            >
-              <SelectTrigger className="w-full max-w-[150px] capitalize">
-                <SelectValue placeholder={statusFilterColumn} />
-              </SelectTrigger>
-              <SelectContent>
-                {statusFilterOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
         </div>
       </div>
 
@@ -127,7 +106,7 @@ export function DataTable({ columns, data, filterColumn, statusFilterColumn = "s
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="font-semibold text-xs uppercase tracking-wider">
+                  <TableHead key={header.id} className="font-semibold text-sm capitalize tracking-wider">
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
@@ -161,7 +140,7 @@ export function DataTable({ columns, data, filterColumn, statusFilterColumn = "s
             {table.getFilteredSelectedRowModel().rows.length} de{" "}
             {table.getFilteredRowModel().rows.length} filas seleccionadas.
           </div>
-          
+
           <div className="flex flex-col items-center gap-4 sm:flex-row lg:gap-8">
             {/* Rows per page */}
             <div className="flex items-center gap-2">

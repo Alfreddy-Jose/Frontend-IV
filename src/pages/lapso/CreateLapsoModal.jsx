@@ -158,27 +158,26 @@ export default function CreateLapsoModal({ fetchLapsos, tiposLapsos }) {
       loading={formik.isSubmitting}
     >
       {/* Campos de Input */}
-      <div className="space-y-2">
+      <div className="md:col-span-3 space-y-1 flex flex-col">
         <Label htmlFor="ano">Año</Label>
         <ModernInput
           id="ano"
           name="ano"
-          placeholder="Ej: 2026"
+          placeholder="EJ: 2026"
           type="text"
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.ano}
-          className="mb-4"
         />
         {formik.touched.ano && formik.errors.ano && (
-          <p className="text-xs text-red-500 mt-[-10px] mb-2">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.ano}
           </p>
         )}
       </div>
 
       {/* Select para los tipos de lapsos */}
-      <div className="space-y-2">
+      <div className="md:col-span-5 space-y-1 flex flex-col">
         <Label htmlFor="tipo_lapso_id">Tipo de Lapso</Label>
         <SelectSearch
           name="tipo_lapso_id"
@@ -187,93 +186,57 @@ export default function CreateLapsoModal({ fetchLapsos, tiposLapsos }) {
           placeholder="Seleccione un tipo de lapso"
         />
         {formik.touched.tipo_lapso_id && formik.errors.tipo_lapso_id && (
-          <p className="text-xs text-red-500 mt-1">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.tipo_lapso_id}
           </p>
         )}
       </div>
 
       {/* Input nombre del lapso  */}
-      <div className="space-y-2">
+      <div className="md:col-span-4 space-y-1 flex flex-col">
         <Label htmlFor="nombre_lapso">Nombre del Lapso</Label>
         <ModernInput
           id="nombre_lapso"
           name="nombre_lapso"
           type="text"
-          placeholder="Ej: 2026-7"
+          placeholder="EJ: 2026-7"
           value={nombreLapso}
           readOnly
           disabled
-          className="mb-4"
         />
         {formik.errors.nombre_lapso && formik.touched.nombre_lapso && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.nombre_lapso}
           </p>
         )}
       </div>
 
       {/* Input de la fecha de inicio */}
-            <div className="space-y-2">
-        <Label htmlFor="fecha_inicio">Fecha de Inicio</Label>
-        <ModernInput
+      <div className="md:col-span-6 space-y-1 flex flex-col">
+        <DateField
           id="fecha_inicio"
           name="fecha_inicio"
-          type="date"
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
+          label="Fecha de Inicio"
           value={formik.values.fecha_inicio}
-          className="mb-4"
+          onChange={formik.handleChange}
+          error={formik.errors.fecha_inicio}
+          touched={formik.touched.fecha_inicio}
         />
-        {formik.errors.fecha_inicio && formik.touched.fecha_inicio && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
-            {formik.errors.fecha_inicio}
-          </p>
-        )}
       </div>
 
       {/* Input de la fecha de fin */}
-      <div className="space-y-2">
-        <Label htmlFor="fecha_fin">Fecha de Fin</Label>
-        <ModernInput
+      <div className="md:col-span-6 space-y-1 flex flex-col">
+        <DateField
           id="fecha_fin"
           name="fecha_fin"
-          type="date"
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
+          label="Fecha de Fin"
           value={formik.values.fecha_fin}
+          onChange={formik.handleChange}
+          error={formik.errors.fecha_fin}
+          touched={formik.touched.fecha_fin}
           min={formik.values.fecha_inicio || undefined}
-          className="mb-4"
         />
-        {formik.errors.fecha_fin && formik.touched.fecha_fin && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
-            {formik.errors.fecha_fin}
-          </p>
-        )}
       </div>
-
-{/*       <DateField
-        id="fecha_inicio"
-        name="fecha_inicio"
-        label="Fecha de Inicio"
-        value={formik.values.fecha_inicio}
-        onChange={formik.handleChange}
-        error={formik.errors.fecha_inicio}
-        touched={formik.touched.fecha_inicio}
-        className="mb-4"
-      />
-
-      <DateField
-        id="fecha_fin"
-        name="fecha_fin"
-        label="Fecha de Fin"
-        value={formik.values.fecha_fin}
-        onChange={formik.handleChange}
-        error={formik.errors.fecha_fin}
-        touched={formik.touched.fecha_fin}
-        min={formik.values.fecha_inicio || undefined}
-        className="mb-4"
-      /> */}
     </ModalFormulario>
   );
 }

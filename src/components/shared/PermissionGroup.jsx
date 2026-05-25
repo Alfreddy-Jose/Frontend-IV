@@ -1,5 +1,6 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { capitalizeWords } from "@/hooks/useCapitalize";
 
 const PermissionGroup = ({
   title,
@@ -77,7 +78,7 @@ const PermissionGroup = ({
                 htmlFor={inputId}
                 className="text-sm font-medium text-gray-600 dark:text-slate-400 cursor-pointer group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
               >
-                {perm.label}
+                {capitalizeWords(perm.label)}
               </Label>
             </div>
           );

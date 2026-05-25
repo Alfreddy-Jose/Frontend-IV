@@ -3,7 +3,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { ModernInput } from "@/components/shared/InputModerno";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Save } from "lucide-react";
 import RoleHeader from "@/components/shared/RoleHeader";
 import PermissionGroup from "@/components/shared/PermissionGroup";
 import { notify } from "@/components/shared/Notify";
@@ -24,7 +24,6 @@ const CreateRoleForm = ({ onBack, onSuccess, permissionsStructure }) => {
     onSubmit: async (values, { setSubmitting }) => {
       setSubmitting(true);
       try {
-        console.log(values);
         await createRole(values);
 
         notify.success("Rol creado con éxito");
@@ -88,10 +87,15 @@ const CreateRoleForm = ({ onBack, onSuccess, permissionsStructure }) => {
 
             <Button type="submit" onClick={formik.handleSubmit}>
               {formik.isSubmitting ?
-              <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Guardando... </> 
-              : "Guardar"}
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Guardando...
+                </>
+                : <>
+                  <Save />
+                  Guardar
+                </>
+              }
             </Button>
           </div>
         }

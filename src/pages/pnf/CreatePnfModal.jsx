@@ -8,7 +8,6 @@ import { ModernInput } from "@/components/shared/InputModerno";
 import { Label } from "@/components/ui/label";
 import { PlusIcon } from "lucide-react";
 import { useUpperCase } from "@/hooks/useUpperCase";
-import { useCapitalize } from "@/hooks/useCapitalize";
 import SelectSearch from "@/components/shared/SelectSearch";
 
 export default function CreatePnfModal({ fetchPnfs, trayectos }) {
@@ -86,9 +85,6 @@ export default function CreatePnfModal({ fetchPnfs, trayectos }) {
   // Inicializar el hook de mayúsculas
   const { handleUpperCaseChange } = useUpperCase(formik);
 
-  // Inicializar el hook de capitalización
-  const { handleCapitalizeChange } = useCapitalize(formik);
-
   return (
     <ModalFormulario 
       title="Nuevo Pnf"
@@ -101,7 +97,7 @@ export default function CreatePnfModal({ fetchPnfs, trayectos }) {
       loading={formik.isSubmitting}
     >
       {/* Campos de Input */}
-      <div className="space-y-2">
+      <div className="md:col-span-3 space-y-1 flex flex-col">
         <Label htmlFor="codigo">Código del Pnf</Label>
         <ModernInput
           id="codigo"
@@ -111,37 +107,35 @@ export default function CreatePnfModal({ fetchPnfs, trayectos }) {
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.codigo}
-          className="mb-4"
         />
         {formik.touched.codigo && formik.errors.codigo && (
-          <p className="text-xs text-red-500 mt-[-10px] mb-2">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.codigo}
           </p>
         )}
       </div>
 
       {/* Input Nombre del PNF */}
-      <div className="space-y-2">
+      <div className="md:col-span-9 space-y-1 flex flex-col">
         <Label htmlFor="nombre">Nombre del Pnf</Label>
         <ModernInput
           id="nombre"
           name="nombre"
           type="text"
-          placeholder="Ej: Programa de Formación en Informática"
-          onChange={handleCapitalizeChange}
+          placeholder="Ej: PROGRAMA DE DE FORMACIÓN EN INFORMÁTICA"
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre}
-          className="mb-4"
         />
         {formik.errors.nombre && formik.touched.nombre && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.nombre}
           </p>
         )}
       </div>
 
       {/* Input Abreviado del PNF */}
-      <div className="space-y-2">
+      <div className="md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="abreviado">Abreviado del Pnf</Label>
         <ModernInput
           id="abreviado"
@@ -151,17 +145,16 @@ export default function CreatePnfModal({ fetchPnfs, trayectos }) {
           onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.abreviado}
-          className="mb-4"
         />
         {formik.errors.abreviado && formik.touched.abreviado && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.abreviado}
           </p>
         )}
       </div>
 
       {/* Input Abreviado del Coordinador */}
-      <div className="space-y-2">
+      <div className="md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="abreviado_coord">Abreviado Coordinación</Label>
         <ModernInput
           id="abreviado_coord"
@@ -171,17 +164,16 @@ export default function CreatePnfModal({ fetchPnfs, trayectos }) {
           onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.abreviado_coord}
-          className="mb-4" 
         />
         {formik.errors.abreviado_coord && formik.touched.abreviado_coord && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.abreviado_coord}
           </p>
         )}
       </div>
 
       {/* Select para Trayectos */}
-      <div className="space-y-2 col-span-1 md:col-span-2">
+      <div className="md:col-span-12 space-y-1 flex flex-col">
         <Label htmlFor="trayectos_id">Trayectos</Label>
         <SelectSearch
           name="trayectos_id"
@@ -191,10 +183,9 @@ export default function CreatePnfModal({ fetchPnfs, trayectos }) {
           labelKey="nombre"
           valueKey="id"
           placeholder="Seleccione una o más opciones"
-          className="mb-4 w-full"
         />
         {formik.touched.trayectos_id && formik.errors.trayectos_id && (
-          <p className="text-xs text-red-500 mt-1">{formik.errors.pnf_id}</p>
+          <p className="text-xs text-red-500 font-medium">{formik.errors.trayectos_id}</p>
         )}
       </div>
     </ModalFormulario>

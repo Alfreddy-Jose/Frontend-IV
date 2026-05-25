@@ -17,6 +17,8 @@ import { logout } from "@/services/authService";
 import { notify } from "../shared/Notify";
 import { useSidebar } from "@/context/SidebarContext"; // Asumiendo que creas el context arriba
 import { Menu, X } from "lucide-react";
+import SelectorLapso from "@/components/shared/SelectorLapso";
+import NotificationBell from "../shared/NotificationBell";
 
 export default function Navbar() {
   const { setTheme } = useTheme();
@@ -101,6 +103,12 @@ export default function Navbar() {
             {/* </a> */}
           </div>
           <div className="flex items-center space-x-4">
+            {/* Selector Lapso */}
+            <SelectorLapso />
+
+            {/* Componente de Notificaciones */}
+            <NotificationBell />
+
             {/* Theme Toggle */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -126,11 +134,11 @@ export default function Navbar() {
             {/* Perfil de Usuario */}
             <div className="flex items-center gap-3 pl-4 border-l border-gray-100 dark:border-slate-800/50">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-gray-800 leading-none dark:text-gray-100">{`${!user.name ? "Nombre no disponible" : user.name} ${!user.lastname ? "Apellido no disponible" : user.lastname}`}</p>
+                <p className="text-sm font-bold text-gray-800 leading-none dark:text-gray-100">{`${!user.name ? "Nombre no disponible" : user.name}`}</p>
                 <p className="text-[11px] text-gray-400 font-medium mt-1">
-                  {!user.roles[0].name
+                  {!user.roles?.[0].name
                     ? "Rol no disponible"
-                    : user.roles[0].name}
+                    : user.roles?.[0].name }
                 </p>
               </div>
               <div className="relative">
@@ -138,7 +146,14 @@ export default function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Avatar>
                       <AvatarImage src="" alt="@shadcn" className="grayscale" />
-                      <AvatarFallback>CN</AvatarFallback>
+                      <AvatarFallback>
+                        {!user.name
+                          ? "U"
+                          : user.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                      </AvatarFallback> 
                     </Avatar>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">

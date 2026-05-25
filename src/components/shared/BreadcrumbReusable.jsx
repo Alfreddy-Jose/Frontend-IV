@@ -10,10 +10,10 @@ const BreadcrumbReusable = ({ items }) => {
           <React.Fragment key={index}>
             <BreadcrumbItem>
               {index === items.length - 1 ? (
-                <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                <BreadcrumbPage className="capitalize">{item.label}</BreadcrumbPage>
               ) : (
                 <BreadcrumbLink asChild>
-                  <Link to={item.href}>{item.label}</Link>
+                  <Link className='capitalize' to={item.href}>{item.label}</Link>
                 </BreadcrumbLink>
               )}
             </BreadcrumbItem>

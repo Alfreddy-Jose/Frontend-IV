@@ -27,7 +27,11 @@ export function AlertDialogDestructive({ isOpen, onClose, id, onSuccess, deleteF
       onClose();
     } catch (error) {
       console.error("Error al eliminar:", error);
-      notify.error("Error al eliminar. Por favor, inténtalo de nuevo.");
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Error al eliminar. Por favor, inténtalo de nuevo.";
+      notify.error(errorMessage);
     } finally {
       setIsProcessing(false);
     }

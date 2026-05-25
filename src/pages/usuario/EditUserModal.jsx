@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ModernInput } from "@/components/shared/InputModerno";
 import { notify } from "@/components/shared/Notify";
 import SelectSearch from "@/components/shared/SelectSearch";
-import { useCapitalize } from "@/hooks/useCapitalize";
+import { useUpperCase } from "@/hooks/useUpperCase";
 
 export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
   const [editingUser, setEditingUser] = useState(null);
@@ -19,8 +19,7 @@ export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
     name: Yup.string()
       .matches(/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/, "Solo letras permitidas")
       .required("El nombre es obligatorio"),
-    lastname: Yup.string().required("El apellido es obligatorio"),
-    email: Yup.string()
+    email: Yup.string() 
       .email("Email inválido")
       .required("El email es obligatorio"),
     password: Yup.string().min(
@@ -34,7 +33,6 @@ export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
   const formik = useFormik({
     initialValues: {
       name: editingUser?.name || "",
-      lastname: editingUser?.lastname || "",
       email: editingUser?.email || "",
       password: "",
       rol: editingUser?.rol || "",
@@ -99,7 +97,7 @@ export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
   }, [isOpen, userId]);
 
   // Inicializar el hook pasando formik
-  const { handleCapitalizeChange } = useCapitalize(formik);
+  const { handleUpperCaseChange } = useUpperCase(formik);
 
   return (
     <ModalFormulario
@@ -113,47 +111,26 @@ export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
       onOpenChange={onClose}
     >
       {/* Campos de Input */}
-      <div className="space-y-2">
+      <div className="md:col-span-5 space-y-1 flex flex-col">
         <Label htmlFor="name">Nombre del Usuario</Label>
         <ModernInput
           id="name"
           name="name"
-          placeholder="Ej: Alfredo"
+          placeholder="Ej: ALFREDO"
           type="text"
-          onChange={handleCapitalizeChange}
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.name}
-          className="mb-4"
         />
         {formik.touched.name && formik.errors.name && (
-          <p className="text-xs text-red-500 mt-[-10px] mb-2">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.name}
           </p>
         )}
       </div>
 
-      {/* Input Apellido del Usuario */}
-      <div className="space-y-2">
-        <Label htmlFor="lastname">Apellido del Usuario</Label>
-        <ModernInput
-          id="lastname"
-          name="lastname"
-          type="text"
-          placeholder="Ej: Gonzales"
-          onChange={handleCapitalizeChange}
-          onBlur={formik.handleBlur}
-          value={formik.values.lastname}
-          className="mb-4"
-        />
-        {formik.errors.lastname && formik.touched.lastname && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
-            {formik.errors.lastname}
-          </p>
-        )}
-      </div>
-
       {/* Input Email del Usuario */}
-      <div className="space-y-2">
+      <div className="md:col-span-7 space-y-1 flex flex-col">
         <Label htmlFor="email">Email del Usuario</Label>
         <ModernInput
           id="email"
@@ -163,17 +140,16 @@ export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.email}
-          className="mb-4"
         />
         {formik.errors.email && formik.touched.email && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.email}
           </p>
         )}
       </div>
 
       {/* Input Contraseña del Usuario */}
-      <div className="space-y-2">
+      <div className="md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="password">Contraseña del Usuario</Label>
         <ModernInput
           id="password"
@@ -183,16 +159,15 @@ export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.password}
-          className="mb-4"
         />
         {formik.errors.password && formik.touched.password && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.password}
           </p>
         )}
       </div>
 
-      <div className="space-y-2">
+      <div className="md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="rol">Rol del Usuario</Label>
         <SelectSearch
           name="rol"
@@ -203,7 +178,7 @@ export function EditUserModal({ isOpen, onClose, userId, onSuccess, roles }) {
           placeholder="Seleccione un rol"
         />
         {formik.touched.rol && formik.errors.rol && (
-          <p className="text-xs text-red-500 mt-1">{formik.errors.rol}</p>
+          <p className="text-xs text-red-500 font-medium">{formik.errors.rol}</p>
         )}
       </div>
     </ModalFormulario>

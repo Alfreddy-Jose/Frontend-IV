@@ -1,6 +1,5 @@
 import BreadcrumbReusable from "@/components/shared/BreadcrumbReusable";
 import { notify } from "@/components/shared/Notify";
-import { SkeletonTable } from "@/components/shared/SkeletonTable";
 import { deleteLapso, getAllLapsos, getTipoLapso } from "@/services/lapsoService";
 import React, { useEffect, useState } from "react";
 import { columnsLapso } from "./columnsLapso";
@@ -8,6 +7,8 @@ import { DataTable } from "@/components/shared/Data_table";
 import CreateLapsoModal from "./CreateLapsoModal";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
 import EditarLapsoModal from "./EditarLapsoModal";
+import { SkeletonTable } from "@/components/shared/SkeletonTable";
+import { Guard } from "@/components/shared/Guard";
 
 export default function Lapso() {
   // Estados
@@ -62,15 +63,17 @@ export default function Lapso() {
 
   return (
       <div>
-        <h1 className="mb-4 font-sans text-3xl font-semibold">Lapsos Académicos</h1>
+        <h1 className="mb-4 font-sans capitalize text-3xl font-semibold">Lapsos Académicos</h1>
         <div className="flex flex-col gap-4 mb-8 md:flex-row md:items-center md:justify-between">
           {/* Breadcrumb para la Navegación  */}
           <BreadcrumbReusable items={items} />
   
-          {/* boton de agregar al lado derecho  */}
-          <div className="flex justify-end">
-            <CreateLapsoModal fetchLapsos={fetchLapsos} tiposLapsos={tiposLapsos} />
-          </div>
+          {/* Boton para crear un Lapso  */}
+          <Guard requiredPermissions="lapso.crear">
+            <div className="flex justify-end">
+              <CreateLapsoModal fetchLapsos={fetchLapsos} tiposLapsos={tiposLapsos} />
+            </div>
+          </Guard>
   
           {/* modal para Editar */}
           <EditarLapsoModal
@@ -97,12 +100,6 @@ export default function Lapso() {
             columns={columnsLapso(handleEdit, handleDelete)}
             data={data}
             filterColumn="nombre_lapso"
-            statusFilterColumn="status"
-            statusFilterOptions={[
-              { value: "all", label: "All Status" },
-              { value: true, label: "Activo" },
-              { value: false, label: "Inactivo" },
-            ]}
           />
         </div>
       </div>

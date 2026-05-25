@@ -101,14 +101,14 @@ export default function EditMatriculaModal({ isOpen, onClose, matriculaId, onSuc
       onOpenChange={onClose}
     >
       {/* Input para el codigo */}
-      <div className="space-y-2">
+      <div className="md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="numero">Número de Matricula</Label>
         <ModernInput
           disabled
           readOnly
           id="numero"
           name="numero"
-          placeholder="Ej: 12345"
+          placeholder="EJ: 12345"
           type="text"
           value={editingMatricula?.numero || ""}
           className="mb-4"
@@ -121,13 +121,13 @@ export default function EditMatriculaModal({ isOpen, onClose, matriculaId, onSuc
       </div>
 
       {/* Input Nombre del PNF */}
-      <div className="space-y-2">
+      <div className="md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="nombre">Nombre de la Matricula</Label>
         <ModernInput
           id="nombre"
           name="nombre"
           type="text"
-          placeholder="Ej: Regular"
+          placeholder="EJ: REGULAR"
           onChange={handleCapitalizeChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre}

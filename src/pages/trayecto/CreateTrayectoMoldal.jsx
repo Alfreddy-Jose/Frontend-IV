@@ -77,13 +77,13 @@ export default function CreateTrayectoMoldal({ fetchTrayecto }) {
       tamaño='sm:max-w-sm'
     >
       {/* Input Nombre del Trayecto */}
-      <div className="space-y-2 col-span-1 md:col-span-2">
+      <div className="md:col-span-12 space-y-1 flex flex-col">
         <Label htmlFor="nombre">Nombre del Trayecto</Label>
         <ModernInput
           id="nombre"
           name="nombre"
           type="text"
-          placeholder="Ej: 1"
+          placeholder="EJ: 1"
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre}

@@ -8,6 +8,8 @@ import React, { useEffect, useState } from "react";
 import { columnsPersonas } from "./columnsPersonas";
 import { getEstados, getMunicipios } from "@/services/sedeService";
 import CreatePersonasModal from "./CreatePersonasModal";
+import EditPersonasModal from "./EditPersonasModal";
+import { Guard } from "@/components/shared/Guard";
 
 export default function Personas() {
   // Estados
@@ -44,7 +46,7 @@ export default function Personas() {
     };
     fetchEstados();
   }, []);
-  
+
   const handleEdit = (persona) => {
     setEditingPersonaId(persona.id);
   };
@@ -68,27 +70,31 @@ export default function Personas() {
 
   return (
     <div>
-      <h1 className="mb-4 font-sans text-3xl font-semibold">Personas</h1>
+      <h1 className="mb-4 font-sans text-3xl capitalize font-semibold">Personas</h1>
       <div className="flex flex-col gap-4 mb-8 md:flex-row md:items-center md:justify-between">
         {/* Breadcrumb para la Navegación  */}
         <BreadcrumbReusable items={items} />
 
-        {/* boton de agregar PNF al lado derecho  */}
-        <div className="flex justify-end">
-          <CreatePersonasModal 
-            fetchPersona={fetchPersona}
-            estados={estados}
-            loadMunicipios={getMunicipios}
-          />
-        </div>
+        {/* Boton para crear una Persona */}
+        <Guard requiredPermissions="persona.crear"> 
+          <div className="flex justify-end">
+            <CreatePersonasModal
+              fetchPersona={fetchPersona}
+              estados={estados}
+              loadMunicipios={getMunicipios}
+            />
+          </div>
+        </Guard>
 
-        {/* modal para Editar */}
-{/*         <EditPnfModal
-          isOpen={!!editingPnfId}
-          pnfId={editingPnfId}
-          onClose={() => setEditingPnfId(null)}
-          onSuccess={fetchPnfs}
-        /> */}
+        {/* Modal para Editar */}
+        <EditPersonasModal
+          isOpen={!!editingPersonaId}
+          personaId={editingPersonaId}
+          onClose={() => setEditingPersonaId(null)}
+          onSuccess={fetchPersona}
+          estados={estados}
+          loadMunicipios={getMunicipios}
+        />
 
         {/* modal para Eliminar */}
         <AlertDialogDestructive

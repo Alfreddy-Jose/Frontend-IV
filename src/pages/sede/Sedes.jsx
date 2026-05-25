@@ -7,11 +7,14 @@ import { SkeletonTable } from "@/components/shared/SkeletonTable";
 import { notify } from "@/components/shared/Notify";
 import CreateSedeModal from "./CreateSedeModal";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
+import { EditSedeModal } from "./EditSedeModal";
+import { Guard } from "@/components/shared/Guard";
 
 export default function Sedes() {
   // Estados
   const [data, setData] = useState([]); 
   const [loading, setLoading] = useState(true);
+  const [editingSedeId, setEditingSedeId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [pnfs, setPnfs] = useState([]);
   const [universidad, setUniversidad] = useState(null);
@@ -74,8 +77,8 @@ export default function Sedes() {
     getUniversidad();
   }, []);
 
-  const handleEdit = () => {
-    // Placeholder para edición futura
+  const handleEdit = (sede) => {
+    setEditingSedeId(sede.id);
   };
 
   const onDelete = (sede) => {
@@ -97,29 +100,35 @@ export default function Sedes() {
 
   return (
     <div>
-      <h1 className="mb-4 font-sans text-3xl font-semibold">Sedes</h1>
+      <h1 className="mb-4 font-sans capitalize text-3xl font-semibold">Sedes</h1>
       <div className="flex flex-col gap-4 mb-8 md:flex-row md:items-center md:justify-between">
         {/* Breadcrumb para la Navegación  */}
         <BreadcrumbReusable items={items} />
 
         {/* boton de agregar usuario al lado derecho  */}
-        <div className="flex justify-end">
-          {<CreateSedeModal
-            fetchSedes={fetchSedes}
-            pnfs={pnfs}
-            universidad={universidad}
-            estados={estados}
-            loadMunicipios={getMunicipios}
-          />}
-        </div>
+        <Guard requiredPermissions="sede.crear">
+          <div className="flex justify-end">
+            {<CreateSedeModal
+              fetchSedes={fetchSedes}
+              pnfs={pnfs}
+              universidad={universidad}
+              estados={estados}
+              loadMunicipios={getMunicipios}
+            />}
+          </div>
+        </Guard>
 
         {/* modal para Editar */}
-        {/*         <EditUserModal
-          isOpen={!!editingUserId}
-          userId={editingUserId}
-          onClose={() => setEditingUserId(null)}
-          onSuccess={fetchUsers}
-        /> */}
+        <EditSedeModal
+          isOpen={!!editingSedeId}
+          sedeId={editingSedeId}
+          onClose={() => setEditingSedeId(null)}
+          onSuccess={fetchSedes}
+          pnfs={pnfs}
+          universidad={universidad}
+          estados={estados}
+          loadMunicipios={getMunicipios}
+        /> 
 
         {/* modal para Eliminar */}
         <AlertDialogDestructive
@@ -136,14 +145,6 @@ export default function Sedes() {
           columns={columns(handleEdit, onDelete)}
           data={data}
           filterColumn="nombre_sede"
-          /*             statusFilterColumn="status"
-            statusFilterOptions={[
-              { value: "all", label: "All Status" },
-              { value: "processing", label: "Processing" },
-              { value: "pending", label: "Pending" },
-              { value: "success", label: "Success" },
-              { value: "failed", label: "Failed" }
-            ]} */
         />
       </div>
     </div>

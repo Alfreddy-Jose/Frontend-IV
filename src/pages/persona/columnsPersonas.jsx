@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
+import { Guard } from '@/components/shared/Guard';
 
 export const columnsPersonas = (onEdit, onDelete) => [
-{
+  {
     id: "select",
-    header: ({ table }) => ( 
+    header: ({ table }) => (
       <Checkbox
         checked={
           table.getIsAllPageRowsSelected() ||
@@ -40,7 +41,7 @@ export const columnsPersonas = (onEdit, onDelete) => [
     header: "Nombre",
     cell: ({ row }) => {
       const nombre = row.getValue("nombre");
-      return <div className="font-medium">{nombre}</div>;
+      return <div className="font-medium uppercase ">{nombre}</div>;
     },
   },
   {
@@ -48,7 +49,7 @@ export const columnsPersonas = (onEdit, onDelete) => [
     header: "Apellido",
     cell: ({ row }) => {
       const apellido = row.getValue("apellido");
-      return <div className="font-medium">{apellido}</div>;
+      return <div className="font-medium uppercase">{apellido}</div>;
     },
   },
   {
@@ -72,7 +73,7 @@ export const columnsPersonas = (onEdit, onDelete) => [
     header: "Tipo Persona",
     cell: ({ row }) => {
       const tipo_persona = row.getValue("tipo_persona");
-      return <div className="font-medium">{tipo_persona}</div>;
+      return <div className="font-medium uppercase">{tipo_persona}</div>;
     },
   },
   {
@@ -88,7 +89,7 @@ export const columnsPersonas = (onEdit, onDelete) => [
     header: "Municipio",
     cell: ({ row }) => {
       const municipio = row.getValue("municipio");
-      return <div className="font-medium">{municipio.municipio}</div>;
+      return <div className="font-medium uppercase">{municipio.municipio}</div>;
     },
   },
   {
@@ -96,7 +97,7 @@ export const columnsPersonas = (onEdit, onDelete) => [
     header: "Dirección",
     cell: ({ row }) => {
       const direccion = row.getValue("direccion");
-      return <div className="font-medium">{direccion}</div>;
+      return <div className="font-medium uppercase">{direccion ? direccion : "N/A"}</div>;
     },
   },
   {
@@ -105,31 +106,37 @@ export const columnsPersonas = (onEdit, onDelete) => [
       const persona = row.original;
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              onClick={() => onEdit(persona)}
-              className="cursor-pointer"
-            >
-              Editar
-            </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => onDelete(persona)}
-                className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
-              >
-                Eliminar
-              </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Guard requiredPermissions={["persona.editar", "persona.eliminar"]}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Abrir menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <Guard requiredPermissions="persona.editar">
+                <DropdownMenuItem
+                  onClick={() => onEdit(persona)}
+                  className="cursor-pointer"
+                >
+                  Editar
+                </DropdownMenuItem>
+              </Guard>
+              <Guard requiredPermissions="persona.eliminar">
+                <DropdownMenuItem
+                  onSelect={() => onDelete(persona)}
+                  className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
+                >
+                  Eliminar
+                </DropdownMenuItem>
+              </Guard>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </Guard>
       );
     },
-  },  
+  },
 ]

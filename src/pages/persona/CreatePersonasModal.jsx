@@ -4,7 +4,7 @@ import { ModernTextarea } from '@/components/shared/ModernTextarea';
 import { notify } from '@/components/shared/Notify';
 import SelectSearch from '@/components/shared/SelectSearch';
 import { Label } from '@/components/ui/label';
-import { useCapitalize } from '@/hooks/useCapitalize';
+import { useUpperCase } from '@/hooks/useUpperCase';
 import { createPersona } from '@/services/personaService';
 import { useFormik } from 'formik';
 import { PlusIcon } from 'lucide-react';
@@ -55,7 +55,7 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
         apellido: Yup.string()
           .matches(/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/, "Solo letras permitidas") // solo letras permitidas
           .required("Este campo es obligatorio"), // Campo requerido
-        direccion: Yup.string().required("Este campo es obligatorio"), // Campo requerido
+        direccion: Yup.string().nullable(),
         telefono: Yup.string()
           .matches(/^[0-9]*$/, "Solo números permitidos") // Solo números
           .required("Este campo es obligatorio") // Campo requerido
@@ -140,8 +140,8 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
     }
   }, [values.estado_id, cargarMunicipios, setFieldValue]);
 
-  // Inicializar el hook de capitalización
-  const { handleCapitalizeChange } = useCapitalize(formik);
+  // Inicializar el hook de mayúsculas
+  const { handleUpperCaseChange } = useUpperCase(formik);
 
   return (
     <ModalFormulario
@@ -155,147 +155,140 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
       loading={formik.isSubmitting}
     >
       {/* Input Cedula */}
-      <div className="space-y-2">
+      <div className="md:col-span-3 space-y-1 flex flex-col">
         <Label htmlFor="cedula_persona">Cédula</Label>
         <ModernInput
           id="cedula_persona"
           name="cedula_persona"
           type="text"
-          placeholder="Ej: 30968595"
+          placeholder="EJ: 30968595"
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.cedula_persona}
-          className="mb-4"
         />
         {formik.errors.cedula_persona && formik.touched.cedula_persona && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.cedula_persona}
           </p>
         )}
       </div>
 
       {/* Input Nombre */}
-      <div className="space-y-2">
+      <div className="md:col-span-4 space-y-1 flex flex-col">
         <Label htmlFor="nombre">Nombre</Label>
         <ModernInput
           id="nombre"
           name="nombre"
           type="text"
-          placeholder="Ej: Miguel"
-          onChange={handleCapitalizeChange}
+          placeholder="EJ: MIGUEL"
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre}
-          className="mb-4"
         />
         {formik.errors.nombre && formik.touched.nombre && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.nombre}
           </p>
         )}
       </div>
 
       {/* Input Apellido */}
-      <div className="space-y-2">
+      <div className="md:col-span-5 space-y-1 flex flex-col">
         <Label htmlFor="apellido">Apellido</Label>
         <ModernInput
           id="apellido"
           name="apellido"
           type="text"
-          placeholder="Ej: Pérez"
-          onChange={handleCapitalizeChange}
+          placeholder="EJ: PÉREZ"
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.apellido}
-          className="mb-4"
         />
         {formik.errors.apellido && formik.touched.apellido && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.apellido}
           </p>
         )}
       </div>
 
       {/* Input telefono */}
-      <div className="space-y-2">
+      <div className="md:col-span-4 space-y-1 flex flex-col">
         <Label htmlFor="telefono">Teléfono</Label>
         <ModernInput
           id="telefono"
           name="telefono"
           type="text"
-          placeholder="Ej: 04126209176"
+          placeholder="EJ: 04126209176"
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.telefono}
-          className="mb-4"
         />
         {formik.errors.telefono && formik.touched.telefono && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.telefono}
           </p>
         )}
       </div>
 
       {/* Input Email */}
-      <div className="space-y-2">
+      <div className="md:col-span-8 space-y-1 flex flex-col">
         <Label htmlFor="email">Email</Label>
         <ModernInput
           id="email"
           name="email"
           type="text"
-          placeholder="Ej: 7F4wP@example.com"
+          placeholder="EJ: 7F4wP@example.com"
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           value={formik.values.email}
-          className="mb-4"
         />
         {formik.errors.email && formik.touched.email && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.email}
           </p>
         )}
       </div>
 
       {/* Select para tipo de persona */}
-      <div className="space-y-2">
+      <div className="md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="tipo_persona">Tipo de Persona</Label>
         <SelectSearch
           placeholder='Seleccione una opción'
           name="tipo_persona"
           options={[
-            { id: "Estudiante", nombre: "Estudiante" },
-            { id: "Docente", nombre: "Docente" },
-            { id: "Administrativo", nombre: "Administrativo" },
+            { id: "ESTUDIANTE", nombre: "ESTUDIANTE" },
+            { id: "DOCENTE", nombre: "DOCENTE" },
+            { id: "ADMINISTRATIVO", nombre: "ADMINISTRATIVO" },
           ]}
           formik={formik}
-          className="mb-4"
         />
         {formik.touched.tipo_persona && formik.errors.tipo_persona && (
-          <p className="text-xs text-red-500 mt-1">{formik.errors.tipo_persona}</p>
+          <p className="text-xs text-red-500 font-medium">{formik.errors.tipo_persona}</p>
         )}
       </div>
 
       {/* Select para grado de instruccion */}
-      <div className="space-y-2">
+      <div className="md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="grado_inst">Instrucción</Label>
         <SelectSearch
           placeholder='Seleccione una opción'
           name="grado_inst"
           options={[
-            { id: "Ingeniero", nombre: "Ingeniero" },
-            { id: "Licenciado", nombre: "Licenciado" },
-            { id: "Doctor", nombre: "Doctor" },
-            { id: "Tecnico Superior", nombre: "Tecnico Superior" },
-            { id: "Bachiller", nombre: "Bachiller" },
+            { id: "INGENIERO", nombre: "INGENIERO" },
+            { id: "LICENCIADO", nombre: "LICENCIADO" },
+            { id: "DOCTOR", nombre: "DOCTOR" },
+            { id: "TECNICO SUPERIOR", nombre: "TECNICO SUPERIOR" },
+            { id: "BACHILLER", nombre: "BACHILLER" },
           ]}
           formik={formik}
-          className="mb-4"
         />
         {formik.touched.grado_inst && formik.errors.grado_inst && (
-          <p className="text-xs text-red-500 mt-1">{formik.errors.grado_inst}</p>
+          <p className="text-xs text-red-500 font-medium">{formik.errors.grado_inst}</p>
         )}
       </div>
 
       {/* Select Estado */}
-      <div className="space-y-2">
+      <div className="md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="estado_id">Estado</Label>
         <SelectSearch
           name="estado_id"
@@ -304,33 +297,31 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
           labelKey="estado"
           valueKey="id_estado"
           placeholder="Seleccione un estado"
-          className="mb-4"
         />
         {formik.touched.estado_id && formik.errors.estado_id && (
-          <p className="text-xs text-red-500 mt-1">{formik.errors.estado_id}</p>
+          <p className="text-xs text-red-500 font-medium">{formik.errors.estado_id}</p>
         )}
       </div>
 
       {/* Select Municipio */}
-      <div className="space-y-2">
+      <div className="md:col-span-6 space-y-1 flex flex-col">
         <Label htmlFor="municipio_id">Municipio</Label>
         <SelectSearch
           name="municipio_id"
           placeholder={
             !formik.values.estado_id
-              ? "Primero Seleccione un Estado"
+              ? "Primero seleccione un estado"
               : loadingMunicipios
-                ? "Cargando Municipios..."
+                ? "Cargando municipios..."
                 : municipios?.length === 0
                   ? "No hay municipios disponibles"
-                  : "Seleccione un Municipio"
+                  : "Seleccione un municipio"
           }
           options={municipios}
           labelKey="municipio"
           valueKey="id_municipio"
           value={formik.values.municipio_id}
           formik={formik}
-          className="mb-4"
           disabled={
             !formik.values.estado_id ||
             loadingMunicipios ||
@@ -338,27 +329,26 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
           }
         />
         {formik.touched.municipio_id && formik.errors.municipio_id && (
-          <p className="text-xs text-red-500 mt-1">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.municipio_id}
           </p>
         )}
       </div>
 
       {/* Input Dirección width full */}
-      <div className="space-y-2">
+      <div className="md:col-span-12 space-y-1 flex flex-col">
         <Label htmlFor="direccion">Dirección</Label>
         <ModernTextarea
           id="direccion"
           name="direccion"
           type="text"
-          placeholder="Ej: Calle Principal, Número 123"
-          onChange={handleCapitalizeChange}
+          placeholder="EJ: CALLE PRINCIPAL, NÚMERO 123"
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.direccion}
-          className="mb-4"
         />
         {formik.errors.direccion && formik.touched.direccion && (
-          <p className="text-xs text-red-500 font-medium mb-3 mt-0">
+          <p className="text-xs text-red-500 font-medium">
             {formik.errors.direccion}
           </p>
         )}

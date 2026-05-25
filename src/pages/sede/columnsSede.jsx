@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { Guard } from "@/components/shared/Guard";
 
 // Define las columnas para la DataTable
 export const columns = (onEdit, onDelete) => [
@@ -82,25 +83,31 @@ export const columns = (onEdit, onDelete) => [
       const sede = row.original;
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onEdit(sede)}>Editar</DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => onDelete(sede)} // Evita que el menú se cierre antes que el modal
-                className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
-              >
-                Eliminar
-              </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Guard requiredPermissions={["sede.editar", "sede.eliminar"]}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Abrir menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <Guard requiredPermissions="sede.editar">
+                <DropdownMenuItem onClick={() => onEdit(sede)} className="cursor-pointer">Editar</DropdownMenuItem>
+              </Guard>
+              <Guard requiredPermissions="sede.eliminar">
+                <DropdownMenuItem
+                  onSelect={() => onDelete(sede)} // Evita que el menú se cierre antes que el modal
+                  className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
+                >
+                  Eliminar
+                </DropdownMenuItem>
+              </Guard>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </Guard>
       );
     },
   },

@@ -28,4 +28,14 @@ export const deleteUser = async (userId) => {
 export const getRoles = async () => {
   const response = await api.get('/get_roles');
   return response.data;
-}
+};
+
+export const getUserPermissions = async (usuarioId) => {
+  const response = await api.get(`/user/${usuarioId}/permisos`);
+  return response.data;
+};
+
+export const updateUserPermissions = async (usuarioId, permisos) => {
+  const response = await api.put(`/user/${usuarioId}/permisos`, { permisos });
+  return response.data;
+};

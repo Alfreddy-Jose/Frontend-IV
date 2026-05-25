@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react'
 import { columnsTrayecto } from './columnsTrayecto';
 import CreateTrayectoMoldal from './CreateTrayectoMoldal';
 import { AlertDialogDestructive } from '@/components/shared/AlertDialogDestructive';
+import { Guard } from '@/components/shared/Guard';
 
 export default function Trayecto() {
   // Estados
@@ -47,23 +48,17 @@ export default function Trayecto() {
 
   return (
     <div>
-      <h1 className="mb-4 font-sans text-3xl font-semibold">Trayectos</h1>
+      <h1 className="mb-4 font-sans text-3xl capitalize font-semibold">Trayectos</h1>
       <div className="flex flex-col gap-4 mb-8 md:flex-row md:items-center md:justify-between">
         {/* Breadcrumb para la Navegación  */}
         <BreadcrumbReusable items={items} />
 
         {/* boton de agregar PNF al lado derecho  */}
-        <div className="flex justify-end">
-          <CreateTrayectoMoldal fetchTrayecto={fetchTrayecto} />
-        </div>
-
-        {/* modal para Editar */}
-{/*         <EditPnfModal
-          isOpen={!!editingTrayectoId}
-          trayectoId={editingTrayectoId}
-          onClose={() => setEditingTrayectoId(null)}
-          onSuccess={fetchTrayecto}
-        /> */}
+        <Guard requiredPermissions="trayecto.crear">
+          <div className="flex justify-end">
+            <CreateTrayectoMoldal fetchTrayecto={fetchTrayecto} />
+          </div>
+        </Guard>
 
         {/* modal para Eliminar */}
         <AlertDialogDestructive

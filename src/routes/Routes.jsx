@@ -12,10 +12,15 @@ import Matriculas from "@/pages/matricula/Matriculas";
 import RolesPermisos from "@/pages/RolesPermisos.jsx/CrearRolesPermissions";
 import Trayecto from "@/pages/trayecto/Trayecto";
 import Personas from "@/pages/persona/Personas";
+import Secciones from "@/pages/seccion/Secciones";
+import UnidadCurricular from "@/pages/unidadCurricular/UnidadCurricular";
+import Docentes from "@/pages/docente/Docentes";
+import Coordinador from "@/pages/coordinador/Coordinador";
+import GestionEntregasPage from "@/pages/gestionEntregas/GestionEntregasPage";
 
 export function AppRoutes() {
   return (
-    <Routes>
+    <Routes> 
       {/* Ruta del Login */}
       <Route path="/login" element={<Login />} />
 
@@ -105,6 +110,51 @@ export function AppRoutes() {
         <ProtectedRoute>
           <Layout>
             <Personas />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      {/* Rutas para Docentes */}
+      <Route path="/docentes" element={
+        <ProtectedRoute>
+          <Layout>
+            <Docentes />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      {/* Rutas para Coordinadores */}
+      <Route path="/coordinadores" element={
+        <ProtectedRoute>
+          <Layout>
+            <Coordinador />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Rutas para Secciones */}
+      <Route path="/secciones" element={
+        <ProtectedRoute>
+          <Layout>  
+            <Secciones />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      {/* Rutas para Unidad Curricular */}
+      <Route path="/unidad_curricular" element={
+        <ProtectedRoute>
+          <Layout>  
+            <UnidadCurricular />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      {/* Rutas para Control de Entregas de Documentos */}
+      <Route path="/gestion_entregas" element={
+        <ProtectedRoute>
+          <Layout>  
+            <GestionEntregasPage />
           </Layout>
         </ProtectedRoute>
       } />
