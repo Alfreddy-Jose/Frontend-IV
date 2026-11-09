@@ -9,20 +9,36 @@ import { Label } from "@/components/ui/label";
 import { PlusIcon } from "lucide-react";
 import SelectSearch from "@/components/shared/SelectSearch";
 import { ModernTextarea } from "@/components/shared/ModernTextarea";
-import Api from "@/services/api";
 import { useUpperCase } from "@/hooks/useUpperCase";
 
 export default function CreateUnidadCurricularModal({
   fetchUnidades,
   trayectos,
+  pnfId = null, // Recibe la ID del PNF del usuario o contexto si la tiene
+  pnfs = [],    // Lista de PNFs disponibles si no la tiene
 }) {
   const [openModal, setOpenModal] = useState(false);
   const [trimestres, setTrimestres] = useState([]);
   const [loadingTrimestres, setLoadingTrimestres] = useState(false);
 
+  const normalizePeriodo = (value) => {
+    const periodo = String(value ?? "").trim().toUpperCase();
+    if (periodo === "1" || periodo === "TRIMESTRAL") return "TRIMESTRAL";
+    if (periodo === "2" || periodo === "SEMESTRAL") return "SEMESTRAL";
+    if (periodo === "3" || periodo === "ANUAL") return "ANUAL";
+    return periodo;
+  };
+
   const validationSchema = useMemo(
     () =>
       Yup.object({
+        // Se exige el pnf_id solo si NO viene predeterminado por prop pnfId
+        pnf_id: pnfId
+          ? Yup.mixed().notRequired()
+          : Yup.string().required("Este campo es obligatorio"),
+        codigo: Yup.string()
+          .matches(/^[0-9]+$/, "Solo se permiten números")
+          .required("Este campo es obligatorio"),
         nombre: Yup.string()
           .matches(/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/, "Solo letras permitidas")
           .required("Este campo es obligatorio"),
@@ -41,53 +57,42 @@ export default function CreateUnidadCurricularModal({
         periodo: Yup.string().required("Este campo es obligatorio"),
         trayecto_id: Yup.string().required("Este campo es obligatorio"),
         descripcion: Yup.string().optional(),
-        // Primero definir una validación base
         trimestre_id: Yup.mixed().test(
           "trimestre-validation",
           function (value) {
             const { periodo } = this.parent;
+            const normalizedPeriodo = normalizePeriodo(periodo);
 
-            // Si no hay período seleccionado, no validar
-            if (!periodo) return true;
+            if (!normalizedPeriodo) return true;
 
-            if (periodo === "1") {
-              // TRIMESTRAL
-              // Debe ser un número (no array)
+            if (normalizedPeriodo === "TRIMESTRAL") {
               if (value === null || value === undefined || value === "") {
-                return this.createError({
-                  message: "Este campo es obligatorio",
-                });
+                return this.createError({ message: "Este campo es obligatorio" });
               }
               return true;
-            } else if (periodo === "2" || periodo === "3") {
-              // SEMESTRAL o ANUAL
-              // Debe ser un array con al menos un elemento
+            } else if (normalizedPeriodo === "SEMESTRAL" || normalizedPeriodo === "ANUAL") {
               if (!Array.isArray(value) || value.length === 0) {
+                return this.createError({ message: "Este campo es obligatorio" });
+              }
+              if (normalizedPeriodo === "SEMESTRAL" && value.length !== 2) {
                 return this.createError({
-                  message: "Este campo es obligatorio",
+                  message: "Debe seleccionar exactamente 2 trimestres para período semestral",
                 });
               }
-
-              // Validación adicional para SEMESTRAL (exactamente 2 trimestres)
-              if (periodo === "2" && value.length !== 2) {
-                return this.createError({
-                  message:
-                    "Debe seleccionar exactamente 2 trimestres para período semestral",
-                });
-              }
-
               return true;
             }
 
             return true;
-          },
+          }
         ),
       }),
-    [],
+    [pnfId]
   );
 
   const formik = useFormik({
     initialValues: {
+      pnf_id: pnfId || "", // Se asigna automáticamente si existe pnfId
+      codigo: "",
       nombre: "",
       unidad_credito: "",
       hora_practica: "",
@@ -104,12 +109,18 @@ export default function CreateUnidadCurricularModal({
 
     onSubmit: async (values, { resetForm, setErrors }) => {
       try {
-        const response = await createUnidadCurricular(values);
+        // Asegurar que lleve el pnfId del prop si existe
+        const dataToSend = {
+          ...values,
+          pnf_id: pnfId || values.pnf_id,
+        };
+
+        const response = await createUnidadCurricular(dataToSend);
         const menssageSuccess = response?.message || response?.data?.message || "Unidad Curricular creada con éxito";
         notify.success(menssageSuccess);
         fetchUnidades();
         setOpenModal(false);
-        resetForm();        
+        resetForm();
       } catch (error) {
         if (error.response && error.response.status === 422) {
           const laravelErrors = error.response.data.errors;
@@ -126,13 +137,20 @@ export default function CreateUnidadCurricularModal({
     },
   });
 
+  // Mantenimiento de pnf_id en formik si pnfId prop cambia
+  useEffect(() => {
+    if (pnfId) {
+      formik.setFieldValue("pnf_id", pnfId);
+    }
+  }, [pnfId]);
+
   useEffect(() => {
     if (!openModal) {
       formik.resetForm();
+      if (pnfId) formik.setFieldValue("pnf_id", pnfId);
     }
-  }, [openModal]);
+  }, [openModal, pnfId]);
 
-  // Cálculo de horas totales
   useEffect(() => {
     const ha = Number(formik.values.hora_practica) || 0;
     const ht = Number(formik.values.hora_teorica) || 0;
@@ -142,7 +160,6 @@ export default function CreateUnidadCurricularModal({
     }
   }, [formik.values.hora_practica, formik.values.hora_teorica]);
 
-  // Función para cargar trimestres basados en el trayecto seleccionado
   const cargarTrimestres = async (trayectoId) => {
     if (!trayectoId) {
       setTrimestres([]);
@@ -161,7 +178,6 @@ export default function CreateUnidadCurricularModal({
     }
   };
 
-  // Efecto para cargar trimestres cuando cambia el trayecto seleccionado
   useEffect(() => {
     if (formik.values.trayecto_id) {
       cargarTrimestres(formik.values.trayecto_id);
@@ -171,35 +187,29 @@ export default function CreateUnidadCurricularModal({
     }
   }, [formik.values.trayecto_id]);
 
-  // Determinar el modo de selección de trimestres según el periodo
-  const periodoSeleccionado = String(formik.values.periodo);
+  const periodoSeleccionado = normalizePeriodo(formik.values.periodo);
   const isTrimestreMulti =
-    periodoSeleccionado === "2" || periodoSeleccionado === "3"; // 2=SEMESTRAL, 3=ANUAL
-  const isTrimestreDisabled = periodoSeleccionado === "3"; // ANUAL
+    periodoSeleccionado === "SEMESTRAL" || periodoSeleccionado === "ANUAL";
+  const isTrimestreDisabled = periodoSeleccionado === "ANUAL";
 
-  // Efecto para seleccionar automáticamente los trimestres en modo ANUAL
   useEffect(() => {
-    if (periodoSeleccionado === "3" && trimestres.length > 0) {
-      // Selecciona todos los trimestres
+    if (periodoSeleccionado === "ANUAL" && trimestres.length > 0) {
       formik.setFieldValue(
         "trimestre_id",
-        trimestres.map((t) => t.id),
+        trimestres.map((t) => t.id)
       );
-    } else if (periodoSeleccionado === "2" && trimestres.length > 0) {
-      // Si cambia a semestral, limpia la selección
+    } else if (periodoSeleccionado === "SEMESTRAL" && trimestres.length > 0) {
       if (
         Array.isArray(formik.values.trimestre_id) &&
         formik.values.trimestre_id.length > 2
       ) {
         formik.setFieldValue("trimestre_id", []);
       }
-    } else if (periodoSeleccionado === "1") {
-      // Si cambia a trimestral, limpia la selección
+    } else if (periodoSeleccionado === "TRIMESTRAL") {
       formik.setFieldValue("trimestre_id", "");
     }
   }, [periodoSeleccionado, trimestres]);
 
-  // Inicializar el hook de mayúsculas
   const { handleUpperCaseChange } = useUpperCase(formik);
 
   return (
@@ -214,6 +224,26 @@ export default function CreateUnidadCurricularModal({
       loading={formik.isSubmitting}
       className="max-w-2xl"
     >
+
+      {/* Código */}
+      <div className="md:col-span-12 space-y-1 flex flex-col">
+        <Label htmlFor="codigo">Código</Label>
+        <ModernInput
+          id="codigo"
+          name="codigo"
+          type="number"
+          placeholder="EJ: 12345"
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          value={formik.values.codigo}
+        />
+        {formik.errors.codigo && formik.touched.codigo && (
+          <p className="text-xs font-medium text-red-500">
+            {formik.errors.codigo}
+          </p>
+        )}
+      </div>
+
       {/* Nombre */}
       <div className="md:col-span-12 space-y-1 flex flex-col">
         <Label htmlFor="nombre">Nombre</Label>
@@ -232,6 +262,27 @@ export default function CreateUnidadCurricularModal({
           </p>
         )}
       </div>
+
+      {/* Select de PNF condicional: Solo si el usuario NO tiene pnfId asociado */}
+      {!pnfId && (
+        <div className="md:col-span-12 space-y-1 flex flex-col">
+          <Label htmlFor="pnf_id">PNF</Label>
+          <SelectSearch
+            name="pnf_id"
+            options={pnfs}
+            formik={formik}
+            isMulti={false}
+            labelKey="nombre"
+            valueKey="id"
+            placeholder="Seleccione el PNF"
+          />
+          {formik.touched.pnf_id && formik.errors.pnf_id && (
+            <p className="text-xs text-red-500 font-medium">
+              {formik.errors.pnf_id}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Trayectos */}
       <div className="md:col-span-4 space-y-1 flex flex-col">
@@ -258,9 +309,9 @@ export default function CreateUnidadCurricularModal({
         <SelectSearch
           name="periodo"
           options={[
-            { id: "1", nombre: "TRIMESTRAL" },
-            { id: "2", nombre: "SEMESTRAL" },
-            { id: "3", nombre: "ANUAL" },
+            { id: "TRIMESTRAL", nombre: "TRIMESTRAL" },
+            { id: "SEMESTRAL", nombre: "SEMESTRAL" },
+            { id: "ANUAL", nombre: "ANUAL" },
           ]}
           formik={formik}
           placeholder="Seleccione un periodo"
@@ -344,7 +395,7 @@ export default function CreateUnidadCurricularModal({
         )}
       </div>
 
-      {/* Horas Académicas */}
+      {/* Horas Prácticas */}
       <div className="md:col-span-3 space-y-1 flex flex-col">
         <Label htmlFor="hora_practica">Horas Prácticas</Label>
         <ModernInput
@@ -363,7 +414,7 @@ export default function CreateUnidadCurricularModal({
         )}
       </div>
 
-      {/* Horas Tota estimadas */}
+      {/* Horas Totales estimadas */}
       <div className="md:col-span-3 space-y-1 flex flex-col">
         <Label htmlFor="hora_total_est">Horas Totales</Label>
         <ModernInput

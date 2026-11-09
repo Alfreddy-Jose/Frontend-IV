@@ -1,4 +1,5 @@
-import { MoreHorizontal } from "lucide-react";
+import React from "react";
+import { MoreHorizontal, Trash2, SquarePen, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,29 +12,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Guard } from "@/components/shared/Guard";
 
-export const columns = (onEdit, onDelete) => [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+export const columns = (onEdit, onDelete, onShow) => [
   {
     accessorKey: "nombre",
     header: "Nombre",
@@ -47,15 +26,7 @@ export const columns = (onEdit, onDelete) => [
     header: "PNF",
     cell: ({ row }) => {
       const valor = row.getValue("pnf");
-      return <div className="font-medium">{valor.nombre || "N/A"}</div>;
-    },
-  },
-  {
-    accessorKey: "lapso",
-    header: "Lapso",
-    cell: ({ row }) => {
-      const valor = row.getValue("lapso");
-      return <div className="font-medium">{valor.nombre_lapso || "N/A"}</div>;
+      return <div className="font-medium">{valor?.nombre || "N/A"}</div>;
     },
   },
   {
@@ -63,7 +34,7 @@ export const columns = (onEdit, onDelete) => [
     header: "Trayecto",
     cell: ({ row }) => {
       const valor = row.getValue("trayecto");
-      return <div className="font-medium">{valor.nombre || "N/A"}</div>;
+      return <div className="font-medium">{valor?.nombre || "N/A"}</div>;
     },
   },
   {
@@ -71,23 +42,7 @@ export const columns = (onEdit, onDelete) => [
     header: "Matrícula",
     cell: ({ row }) => {
       const valor = row.getValue("matricula");
-      return <div className="font-medium">{valor.nombre || "N/A"}</div>;
-    },
-  },
-  {
-    accessorKey: "sede",
-    header: "Sede",
-    cell: ({ row }) => {
-      const valor = row.getValue("sede");
-      return <div className="font-medium">{valor.nombre_sede || "N/A"}</div>;
-    },
-  },
-  {
-    accessorKey: "numero_seccion",
-    header: "Numero de Sección",
-    cell: ({ row }) => {
-      const valor = row.getValue("numero_seccion");
-      return <div className="font-medium">{valor || "N/A"}</div>;
+      return <div className="font-medium">{valor?.nombre || "N/A"}</div>;
     },
   },
   {
@@ -107,14 +62,31 @@ export const columns = (onEdit, onDelete) => [
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Acciones</DropdownMenuLabel>
               <DropdownMenuSeparator />
+
+              {/* Opción para Ver Detalles */}
+              <DropdownMenuItem
+                onClick={() => onShow(seccion)}
+                className="cursor-pointer"
+              >
+                <Eye className="h-4 w-4 text-blue-700 dark:text-blue-400" />
+                Ver Detalles
+              </DropdownMenuItem>
+
               <Guard requiredPermissions="seccion.editar">
-                <DropdownMenuItem onClick={() => onEdit(seccion)} className="cursor-pointer">Editar</DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onEdit(seccion)}
+                  className="cursor-pointer"
+                >
+                  <SquarePen className="h-4 w-4 text-blue-700 dark:text-blue-400" />
+                  Editar
+                </DropdownMenuItem>
               </Guard>
               <Guard requiredPermissions="seccion.eliminar">
                 <DropdownMenuItem
                   onSelect={() => onDelete(seccion)}
                   className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
                 >
+                  <Trash2 className="h-4 w-4 text-red-700 dark:text-red-300" />
                   Eliminar
                 </DropdownMenuItem>
               </Guard>

@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { getDocenteById, updateDocente } from "@/services/docenteService";
+import { getUnidadesCurricularesByPnf } from "@/services/unidadCurricularService";
+import { useAuth } from "@/context/AuthContext";
 import { notify } from "@/components/shared/Notify";
 import { ModalFormulario } from "@/components/shared/ModalFormulario";
 import { Label } from "@/components/ui/label";
@@ -13,6 +15,16 @@ export default function EditDocenteModal({ isOpen, onClose, docenteId, onSuccess
     const [loading, setLoading] = useState(false);
     const [loadingDocente, setLoadingDocente] = useState(false);
 
+    // Estado local para almacenar las UCs filtradas por el PNF seleccionado
+    const [unidadesCurricularesOptions, setUnidadesCurricularesOptions] = useState([]);
+    const [loadingUC, setLoadingUC] = useState(false);
+
+    // Obtener PNF del usuario autenticado
+    const { pnf } = useAuth();
+
+    // Ref para rastrear el PNF anterior y saber si el usuario lo cambió manualmente
+    const prevPnfIdRef = useRef(null);
+
     const validationSchema = useMemo(
         () =>
             Yup.object({
@@ -21,7 +33,9 @@ export default function EditDocenteModal({ isOpen, onClose, docenteId, onSuccess
                 categoria: Yup.string().required("Este campo es obligatorio"),
                 dedicacion: Yup.string().required("Este campo es obligatorio"),
                 tipo: Yup.string().required("Este campo es obligatorio"),
-                unidad_curricular_id: Yup.array().required("Este campo es obligatorio"),
+                unidad_curricular_id: Yup.array()
+                    .min(1, "Debe seleccionar al menos una unidad curricular")
+                    .required("Este campo es obligatorio"),
                 fecha_inicio: Yup.date()
                     .transform((value, originalValue) =>
                         originalValue === "" || originalValue == null ? null : value,
@@ -62,7 +76,7 @@ export default function EditDocenteModal({ isOpen, onClose, docenteId, onSuccess
     const formik = useFormik({
         initialValues: {
             persona_id: editingDocente?.persona_id || "",
-            pnf_id: editingDocente?.pnf_id || "",
+            pnf_id: editingDocente?.pnf_id || pnf || "",
             categoria: editingDocente?.categoria || "",
             fecha_inicio: editingDocente?.condicion_contrato?.fecha_inicio || "",
             fecha_fin: editingDocente?.condicion_contrato?.fecha_fin || "",
@@ -77,7 +91,6 @@ export default function EditDocenteModal({ isOpen, onClose, docenteId, onSuccess
         onSubmit: async (values, { setErrors }) => {
             setLoading(true);
             try {
-                // Prevenir desfase de zonas horarias extrayendo YYYY-MM-DD
                 const formatDate = (dateObj) => {
                     if (!dateObj) return null;
                     try {
@@ -101,6 +114,7 @@ export default function EditDocenteModal({ isOpen, onClose, docenteId, onSuccess
                 onClose();
                 formik.resetForm();
                 setEditingDocente(null);
+                setUnidadesCurricularesOptions([]);
             } catch (error) {
                 if (error.response && error.response.status === 422) {
                     const laravelErrors = error.response.data.errors;
@@ -121,6 +135,7 @@ export default function EditDocenteModal({ isOpen, onClose, docenteId, onSuccess
         },
     });
 
+    // Cargar datos del Docente al abrir el modal
     useEffect(() => {
         if (isOpen && docenteId) {
             const fetchDocente = async () => {
@@ -131,6 +146,8 @@ export default function EditDocenteModal({ isOpen, onClose, docenteId, onSuccess
                         ...docenteData,
                         unidad_curricular_id: getUnidadesCurricularesIds(docenteData),
                     });
+                    // Guardamos el PNF inicial del docente
+                    prevPnfIdRef.current = docenteData?.pnf_id || null;
                 } catch (error) {
                     console.error("Error fetching docente:", error);
                     notify.error("Error al cargar los datos del Docente");
@@ -142,9 +159,45 @@ export default function EditDocenteModal({ isOpen, onClose, docenteId, onSuccess
             fetchDocente();
         } else {
             setEditingDocente(null);
+            prevPnfIdRef.current = null;
+            setUnidadesCurricularesOptions([]);
             formik.resetForm();
         }
     }, [isOpen, docenteId]);
+
+    // EFECTO DE CASCADA / SELECT DEPENDIENTE
+    useEffect(() => {
+        const selectedPnfId = formik.values.pnf_id;
+
+        if (selectedPnfId) {
+            setLoadingUC(true);
+
+            // Si el PNF cambia manualmente con respecto al que se cargó inicialmente,
+            // vaciamos las unidades seleccionadas
+            if (prevPnfIdRef.current !== null && prevPnfIdRef.current !== selectedPnfId) {
+                formik.setFieldValue("unidad_curricular_id", []);
+            }
+            prevPnfIdRef.current = selectedPnfId;
+
+            // Obtener UCs del PNF
+            getUnidadesCurricularesByPnf(selectedPnfId)
+                .then((data) => {
+                    const unidades = Array.isArray(data) ? data : data?.data || [];
+                    setUnidadesCurricularesOptions(unidades);
+                })
+                .catch((err) => {
+                    console.error("Error al cargar unidades curriculares:", err);
+                    notify.error("No se pudieron cargar las unidades curriculares.");
+                    setUnidadesCurricularesOptions([]);
+                })
+                .finally(() => {
+                    setLoadingUC(false);
+                });
+        } else {
+            setUnidadesCurricularesOptions([]);
+            formik.setFieldValue("unidad_curricular_id", []);
+        }
+    }, [formik.values.pnf_id]);
 
     return (
         <ModalFormulario
@@ -155,7 +208,14 @@ export default function EditDocenteModal({ isOpen, onClose, docenteId, onSuccess
             loading={loading}
             onSubmit={formik.handleSubmit}
             open={isOpen}
-            onOpenChange={onClose}
+            onOpenChange={(openStatus) => {
+                if (!openStatus) {
+                    onClose();
+                    setEditingDocente(null);
+                    setUnidadesCurricularesOptions([]);
+                    formik.resetForm();
+                }
+            }}
         >
             {/* Select para buscar Docente */}
             <div className="md:col-span-4 space-y-1 flex flex-col">
@@ -185,6 +245,7 @@ export default function EditDocenteModal({ isOpen, onClose, docenteId, onSuccess
                     formik={formik}
                     valueKey="id"
                     labelKey="nombre"
+                    disabled={Boolean(pnf)}
                     placeholder="Seleccione una opción"
                 />
                 {formik.touched.pnf_id && formik.errors.pnf_id && (
@@ -284,15 +345,24 @@ export default function EditDocenteModal({ isOpen, onClose, docenteId, onSuccess
                 )}
             </div>
 
-            {/* Select para Unidad Curricular */}
+            {/* Select dependiente para Unidad Curricular */}
             <div className="md:col-span-12 space-y-1 flex flex-col">
                 <Label htmlFor="unidad_curricular_id">Unidad Curricular</Label>
                 <SelectSearch
                     name="unidad_curricular_id"
-                    options={dataSelect?.unidadesCurriculares || []}
+                    options={unidadesCurricularesOptions}
                     isMulti={true}
                     formik={formik}
-                    placeholder="Seleccione una o +opciones"
+                    valueKey="id"
+                    labelKey="nombre"
+                    isDisabled={!formik.values.pnf_id || loadingUC}
+                    placeholder={
+                        loadingUC
+                            ? "Cargando unidades..."
+                            : !formik.values.pnf_id
+                            ? "Seleccione un PNF primero"
+                            : "Seleccione una o más opciones"
+                    }
                 />
                 {formik.touched.unidad_curricular_id && formik.errors.unidad_curricular_id && (
                     <p className="text-xs text-red-500 font-medium">

@@ -25,4 +25,11 @@ export const updatePersona = async (personaId, personaData) => {
   return response.data;
 }
 
+export const getSeccionesByPnf = async (pnfId = null) => {
+  // Si viene un pnfId lo añade como query param, de lo contrario pide todas
+  const url = pnfId ? `/persona/get_secciones?pnf_id=${pnfId}` : '/persona/get_secciones';
+  const response = await Api.get(url);
+  return response.data;
+}
+
 

@@ -9,60 +9,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Trash2, SquarePen, Eye } from "lucide-react";
 import { Guard } from "@/components/shared/Guard";
 
-export const columnsUnidadCurricular = (onEdit, onDelete) => [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+export const columnsUnidadCurricular = (onEdit, onDelete, onShow) => [
   {
     accessorKey: "nombre",
     header: "Nombre",
     cell: ({ row }) => (
       <div className="font-medium">{row.getValue("nombre")}</div>
-    ),
-  },
-  {
-    accessorKey: "unidad_credito",
-    header: "Unidad Crédito",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("unidad_credito")}</div>
-    ),
-  },
-  {
-    accessorKey: "hora_practica",
-    header: "H.Práctica",
-    cell: ({ row }) => (
-      <div className="font-medium">
-        {row.getValue("hora_practica") || "N/A"}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "hora_teorica",
-    header: "H.Teórica",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("hora_teorica")}</div>
     ),
   },
   {
@@ -78,35 +33,10 @@ export const columnsUnidadCurricular = (onEdit, onDelete) => [
     ),
   },
   {
-    accessorKey: "hora_total_est",
-    header: "H. Totales",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("hora_total_est")}</div>
-    ),
-  },
-  {
-    accessorKey: "trimestres",
-    header: "Trimestres",
-    cell: ({ row }) => {
-      const trimestres = row.getValue("trimestres");
-      return (
-        <div className="font-medium">
-          {Array.isArray(trimestres) && trimestres.length > 0
-            ? trimestres.map((trimestre, idx) => (
-              <span key={trimestre.id}>
-                {trimestre.nombre}{idx < trimestres.length - 1 ? ', ' : ''}
-              </span>
-            ))
-            : "N/A"}
-        </div>
-      );
-    },
-  },
-  {
     id: "trayecto",
     header: "Trayecto",
     cell: ({ row }) => {
-      const trimestres = row.getValue("trimestres");
+      const trimestres = row.original.trimestres;
       const trayecto = Array.isArray(trimestres) && trimestres.length > 0 ? trimestres[0].trayecto : null;
       return (
         <div className="font-medium">
@@ -118,13 +48,6 @@ export const columnsUnidadCurricular = (onEdit, onDelete) => [
         </div>
       );
     },
-  },
-  {
-    accessorKey: "descripcion",
-    header: "Descripción",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("descripcion") || "N/A"}</div>
-    ),
   },
   {
     id: "actions",
@@ -143,11 +66,19 @@ export const columnsUnidadCurricular = (onEdit, onDelete) => [
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Acciones</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onShow(uc)}
+                className="cursor-pointer"
+              >
+                <Eye className="h-4 w-4 text-blue-700 dark:text-blue-400" />
+                Ver detalles
+              </DropdownMenuItem>
               <Guard requiredPermissions="unidad Curricular.editar">
                 <DropdownMenuItem
                   onClick={() => onEdit(uc)}
                   className="cursor-pointer"
                 >
+                  <SquarePen className="h-4 w-4 text-blue-700 dark:text-blue-400" />
                   Editar
                 </DropdownMenuItem>
               </Guard>
@@ -156,6 +87,7 @@ export const columnsUnidadCurricular = (onEdit, onDelete) => [
                   onSelect={() => onDelete(uc)}
                   className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
                 >
+                  <Trash2 className="h-4 w-4 text-red-700 dark:text-red-300" />
                   Eliminar
                 </DropdownMenuItem>
               </Guard>

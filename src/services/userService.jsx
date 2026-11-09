@@ -39,3 +39,14 @@ export const updateUserPermissions = async (usuarioId, permisos) => {
   const response = await api.put(`/user/${usuarioId}/permisos`, { permisos });
   return response.data;
 };
+
+export const updateUserProfile = async (userId, data) => {
+    const response = await api.put(`/user/${userId}/profile`, data);
+    return response.data;
+};
+
+export const updateUserPassword = async (userId, values) => {
+  // Cambiamos a .put y pasamos 'values' como el cuerpo de la petición
+  const response = await api.put(`/user/${userId}/password`, values);
+  return response.data;
+};

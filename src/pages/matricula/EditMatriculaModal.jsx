@@ -7,7 +7,7 @@ import { ModalFormulario } from "@/components/shared/ModalFormulario";
 import { ModernInput } from "@/components/shared/InputModerno";
 import { Label } from "@/components/ui/label";
 import { getMatriculaById, updateMatricula } from '@/services/matriculaService';
-import { useCapitalize } from '@/hooks/useCapitalize';
+import { useUpperCase } from "@/hooks/useUpperCase";
 
 export default function EditMatriculaModal({ isOpen, onClose, matriculaId, onSuccess }) {
   const [editingMatricula, setEditingMatricula] = useState(null);
@@ -87,7 +87,8 @@ export default function EditMatriculaModal({ isOpen, onClose, matriculaId, onSuc
     }
   }, [isOpen, matriculaId]);
 
-  const { handleCapitalizeChange } = useCapitalize(formik);
+    // Inicializar el hook de mayusculas
+    const { handleUpperCaseChange } = useUpperCase(formik);
 
   return (
     <ModalFormulario
@@ -128,7 +129,7 @@ export default function EditMatriculaModal({ isOpen, onClose, matriculaId, onSuc
           name="nombre"
           type="text"
           placeholder="EJ: REGULAR"
-          onChange={handleCapitalizeChange}
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre}
           className="mb-4"

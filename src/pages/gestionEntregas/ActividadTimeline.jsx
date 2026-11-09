@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Clock } from "lucide-react";
+import { Check, Clock, MessageSquare, Edit3, Paperclip } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function ActividadTimeline({ actividades }) {
@@ -8,24 +8,33 @@ export default function ActividadTimeline({ actividades }) {
       <div>
         <h2 className="text-xl font-bold text-foreground">Actividad Reciente</h2>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Timeline de acciones académicas realizadas.
+          Línea de tiempo de acciones académicas realizadas.
         </p>
       </div>
 
       {/* Timeline Cards Container */}
       <div className="relative border-l border-border pl-4 ml-2 space-y-4 py-2">
         {actividades.map((act) => {
-          const isCheck = act.accion === "marcó";
-          const isUncheck = act.accion === "desmarcó";
+          const isCheck = act.accion === "Marcó";
+          const isUncheck = act.accion === "Desmarcó";
+          const isAddObs = act.accion === "Agregó observación a";
+          const isUpdateObs = act.accion === "Actualizó la observación de";
+          const isFile = act.accion === "Adjuntó un archivo a";
           
           return (
           <div key={act.id} className="relative group">
             {/* Circle icon on the line */}
-            <div className={`absolute -left-[25px] top-1.5 size-5 rounded-full border-2 bg-background flex items-center justify-center z-10 transition-colors ${isCheck ? "border-emerald-500 text-emerald-500" : isUncheck ? "border-rose-500 text-rose-500" : "border-primary text-primary"}`}>
+            <div className={`absolute -left-[25px] top-1.5 size-5 rounded-full border-2 bg-background flex items-center justify-center z-10 transition-colors ${isCheck ? "border-emerald-500 text-emerald-500" : isUncheck ? "border-rose-500 text-rose-500" : isAddObs ? "border-blue-500 text-blue-500" : isUpdateObs ? "border-amber-500 text-amber-500" : isFile ? "border-violet-500 text-violet-500" : "border-primary text-primary"}`}>
               {isCheck ? (
                 <Check className="size-2.5 stroke-[3px]" />
               ) : isUncheck ? (
                 <span className="text-[8px] font-bold">X</span>
+              ) : isAddObs ? (
+                <MessageSquare className="size-2.5" />
+              ) : isUpdateObs ? (
+                <Edit3 className="size-2.5" />
+              ) : isFile ? (
+                <Paperclip className="size-2.5" />
               ) : (
                 <Clock className="size-2.5" />
               )}

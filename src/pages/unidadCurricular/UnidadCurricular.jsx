@@ -4,12 +4,17 @@ import { deleteUnidadCurricular, getAllUnidadesCurriculares } from "@/services/u
 import React, { useEffect, useState } from "react";
 import { columnsUnidadCurricular } from "./columnUnidadCurricular";
 import { DataTable } from "@/components/shared/Data_table";
+import { BookOpen } from "lucide-react";
+import GenericShowModal from "@/components/shared/GenericShowModal";
+import { unidadCurricularSections } from "./unidadCurricularSections.jsx";
 import CreateUnidadCurricularModal from "./CreateUnidadCurricularModal";
 import BreadcrumbReusable from "@/components/shared/BreadcrumbReusable";
 import EditUnidadCurricularModal from "./EditUnidadCurricularModal";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
 import { getAllTrayectos } from "@/services/trayectoService";
 import { Guard } from "@/components/shared/Guard";
+import { useAuth } from "@/context/AuthContext";
+import { getPnfs } from "@/services/sedeService";
 
 export default function UnidadCurricular() {
     const [data, setData] = useState([]);
@@ -17,6 +22,10 @@ export default function UnidadCurricular() {
     const [editingId, setEditingId] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
     const [trayectos, setTrayectos] = useState([]);
+    const [selectedUC, setSelectedUC] = useState(null);
+    const [isShowModalOpen, setIsShowModalOpen] = useState(false);
+    const [pnfs, setPnfs] = useState([]);
+    const { pnf } = useAuth();
 
     const fetchUnidades = async () => {
         try {
@@ -49,8 +58,26 @@ export default function UnidadCurricular() {
         fetchUnidades();
     }, []);
 
+    // fetch para traer los PNFS
+    useEffect(() => {
+        const fetchPnfs = async () => {
+            try {
+                const response = await getPnfs();
+                setPnfs(response || []);
+            } catch (error) {
+                console.error("Error al obtener los PNFS:", error);
+                setPnfs([]);
+            }
+        };
+        fetchPnfs();
+    }, []);
+
     const handleEdit = (uc) => setEditingId(uc.id);
     const handleDelete = (uc) => setDeletingId(uc.id);
+    const handleShow = (uc) => {
+        setSelectedUC(uc);
+        setIsShowModalOpen(true);
+    };
 
     const items = [
         { label: "Home", href: "/" },
@@ -67,7 +94,12 @@ export default function UnidadCurricular() {
 
                 <Guard requiredPermissions="unidad Curricular.crear">
                     <div className="flex justify-end">
-                        <CreateUnidadCurricularModal fetchUnidades={fetchUnidades} trayectos={trayectos} />
+                        <CreateUnidadCurricularModal
+                            fetchUnidades={fetchUnidades}
+                            trayectos={trayectos}
+                            pnfs={pnfs}
+                            pnfId={pnf}
+                        />
                     </div>
                 </Guard>
 
@@ -77,6 +109,8 @@ export default function UnidadCurricular() {
                     onClose={() => setEditingId(null)}
                     onSuccess={fetchUnidades}
                     trayectos={trayectos}
+                    pnfs={pnfs}
+                    pnfId={pnf}
                 />
 
                 <AlertDialogDestructive
@@ -89,11 +123,24 @@ export default function UnidadCurricular() {
             </div>
             <div className="my-4">
                 <DataTable
-                    columns={columnsUnidadCurricular(handleEdit, handleDelete)}
+                    columns={columnsUnidadCurricular(handleEdit, handleDelete, handleShow)}
                     data={data}
                     filterColumn="nombre"
                 />
             </div>
+
+            <GenericShowModal
+                isOpen={isShowModalOpen}
+                onClose={() => {
+                    setIsShowModalOpen(false);
+                    setSelectedUC(null);
+                }}
+                title="Detalles de la Unidad Curricular"
+                description={selectedUC?.nombre || ""}
+                icon={BookOpen}
+                data={selectedUC}
+                sections={unidadCurricularSections}
+            />
         </div>
     );
 }

@@ -10,6 +10,9 @@ import { getEstados, getMunicipios } from "@/services/sedeService";
 import CreatePersonasModal from "./CreatePersonasModal";
 import EditPersonasModal from "./EditPersonasModal";
 import { Guard } from "@/components/shared/Guard";
+import GenericShowModal from "@/components/shared/GenericShowModal";
+import { User } from "lucide-react";
+import { personaSections } from "./personaSections";
 
 export default function Personas() {
   // Estados
@@ -18,6 +21,8 @@ export default function Personas() {
   const [editingPersonaId, setEditingPersonaId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [estados, setEstados] = useState([]);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [isShowOpen, setIsShowOpen] = useState(false);
 
   const fetchPersona = async () => {
     try {
@@ -51,6 +56,11 @@ export default function Personas() {
     setEditingPersonaId(persona.id);
   };
 
+  const handleShow = (persona) => {
+    setSelectedRecord(persona);
+    setIsShowOpen(true);
+  };
+
   const handleDelete = (persona) => {
     setDeletingId(persona.id);
   };
@@ -76,7 +86,7 @@ export default function Personas() {
         <BreadcrumbReusable items={items} />
 
         {/* Boton para crear una Persona */}
-        <Guard requiredPermissions="persona.crear"> 
+        <Guard requiredPermissions="persona.crear">
           <div className="flex justify-end">
             <CreatePersonasModal
               fetchPersona={fetchPersona}
@@ -108,11 +118,23 @@ export default function Personas() {
       <div className="my-4">
         {/* Tabla de Usuarios */}
         <DataTable
-          columns={columnsPersonas(handleEdit, handleDelete)}
+          columns={columnsPersonas(handleEdit, handleShow, handleDelete)}
           data={data}
           filterColumn="nombre"
         />
       </div>
+
+      {/* Modal para ver detalles */}
+      <GenericShowModal
+        isOpen={isShowOpen}
+        onClose={() => setIsShowOpen(false)}
+        title="Resumen de Persona"
+        description={selectedRecord ? `${selectedRecord.nombre} ${selectedRecord.apellido}` : ""}
+        icon={User}
+        data={selectedRecord}
+        sections={personaSections}
+      />
+
     </div>
   );
 }

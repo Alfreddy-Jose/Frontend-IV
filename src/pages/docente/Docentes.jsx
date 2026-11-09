@@ -9,6 +9,9 @@ import { DataTable } from '@/components/shared/Data_table';
 import CreateDocenteModal from './CreateDocenteModal';
 import EditDocenteModal from './EditDocenteModal';
 import { Guard } from '@/components/shared/Guard';
+import GenericShowModal from '@/components/shared/GenericShowModal';
+import { GraduationCap } from 'lucide-react';
+import { docenteSections } from './docenteSections';
 
 export default function Docentes() {
   // Estados
@@ -17,6 +20,10 @@ export default function Docentes() {
   const [editingDocenteId, setEditingDocenteId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [dataSelect, setDataSelect] = useState([]);
+
+  // Estados para el Modal de Detalles
+  const [selectedDocente, setSelectedDocente] = useState(null);
+  const [isShowModalOpen, setIsShowModalOpen] = useState(false);
 
   // Fetch para traer lo Docentes
   const fetchDocentes = async () => {
@@ -56,6 +63,12 @@ export default function Docentes() {
     setDeletingId(docente.id);
   };
 
+  // Handler para Abrir Modal de Detalles
+  const handleShow = (docente) => {
+    setSelectedDocente(docente);
+    setIsShowModalOpen(true);
+  };
+
   useEffect(() => {
     fetchDocentes();
   }, []);
@@ -81,8 +94,8 @@ export default function Docentes() {
           <div className="flex justify-end">
             <CreateDocenteModal fetchDocente={fetchDocentes} dataSelect={dataSelect} />
           </div>
-        </Guard> 
-
+        </Guard>  
+ 
         {/* modal para Editar */}
         <EditDocenteModal
           isOpen={!!editingDocenteId}
@@ -100,11 +113,26 @@ export default function Docentes() {
           onSuccess={fetchDocentes}
           deleteFunction={deleteDocente}
         />
+
+        {/* Modal para Ver Detalles */}
+        <GenericShowModal
+          isOpen={isShowModalOpen}
+          onClose={() => setIsShowModalOpen(false)}
+          title="Ficha del Docente"
+          description={
+            selectedDocente
+              ? `${selectedDocente.persona?.nombre || ""} ${selectedDocente.persona?.apellido || ""} - C.I: ${selectedDocente.persona?.cedula_persona || ""}`
+              : ""
+          }
+          icon={GraduationCap}
+          data={selectedDocente}
+          sections={docenteSections}
+        />
       </div>
       <div className="my-4">
-        {/* Tabla de Usuarios */}
+        {/* Tabla de Docentes */}
         <DataTable
-          columns={columnsDocente(handleEdit, handleDelete)}
+          columns={columnsDocente(handleEdit, handleDelete, handleShow)}
           data={data}
           filterColumn="nombre"
         />

@@ -1,26 +1,39 @@
-import React from 'react';
-import { 
-  GraduationCap, 
-  Layers, 
-  Users, 
-  Megaphone, 
-  Calendar, 
-  Clock, 
-  AlertCircle, 
-  CheckCircle2, 
-  Timer, 
-  BookOpen, 
+import React, { useState, useEffect } from 'react';
+import {
+  GraduationCap,
+  Layers,
+  Users,
+  Megaphone,
+  Calendar,
+  Clock,
+  AlertCircle,
+  CheckCircle2,
+  Timer,
+  BookOpen,
   TrendingUp,
-  ArrowUpRight,
   Activity,
-  BarChart3
+  Loader2
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
-// Mock JSON data for fallback/demonstration
+// Impuntamos Recharts
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Cell
+} from 'recharts';
+import { getDashboardData } from '../services/dashboardService';
+import { useAuth } from '@/context/AuthContext';
+
+// Datos por defecto (fallback en caso de que la API aún cargue o falle)
 const DEFAULT_MOCK_DATA = {
   resumen_lapso: {
     nombre: "Lapso Académico 2026-I",
@@ -44,20 +57,23 @@ const DEFAULT_MOCK_DATA = {
     { trayecto: "Trayecto II", cantidad: 5 },
     { trayecto: "Trayecto III", cantidad: 4 },
     { trayecto: "Trayecto IV", cantidad: 3 }
+  ],
+  grafica_entregas: [
+    { label: "Trayecto I", percentage: 65, color: "#3b82f6" },
+    { label: "Trayecto II", percentage: 80, color: "#06b6d4" },
+    { label: "Trayecto III", percentage: 42, color: "#6366f1" },
+    { label: "Trayecto IV", percentage: 92, color: "#a855f7" },
+    { label: "Institucional", percentage: 55, color: "#ec4899" },
+    { label: "Electivas", percentage: 70, color: "#10b981" },
   ]
 };
 
-// Data for the main bar chart (representing percentage of deliveries per trayecto/area)
-const MOCK_CHART_DATA = [
-  { label: "Trayecto I", percentage: 65, color: "from-blue-500 to-indigo-500 dark:from-blue-600 dark:to-indigo-600" },
-  { label: "Trayecto II", percentage: 80, color: "from-cyan-500 to-blue-500 dark:from-cyan-600 dark:to-blue-600" },
-  { label: "Trayecto III", percentage: 42, color: "from-indigo-500 to-purple-500 dark:from-indigo-600 dark:to-purple-600" },
-  { label: "Trayecto IV", percentage: 92, color: "from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600" },
-  { label: "Institucional", percentage: 55, color: "from-pink-500 to-rose-500 dark:from-pink-600 dark:to-rose-600" },
-  { label: "Electivas", percentage: 70, color: "from-emerald-500 to-teal-500 dark:from-emerald-600 dark:to-teal-600" },
-];
+const formatTrayectoName = (trayecto) => {
+  if (!trayecto) return "";
+  const trayectoStr = String(trayecto).trim();
+  return /^\d+$/.test(trayectoStr) ? `Trayecto ${trayectoStr}` : trayectoStr;
+};
 
-// Helper: formats dates cleanly in Spanish
 const formatDateInSpanish = (dateStr) => {
   if (!dateStr) return "";
   const date = new Date(dateStr + "T00:00:00");
@@ -68,13 +84,11 @@ const formatDateInSpanish = (dateStr) => {
   });
 };
 
-// Helper: extracts initials from names, stripping titles
 const getInitials = (name) => {
   if (!name) return "";
   const cleanName = name.replace(/^(Ing\.|MSc\.|Dr\.|Dra\.|Prof\.)\s+/i, "");
   const parts = cleanName.split(" ");
-  const initials = parts.map(p => p[0]).filter(Boolean).slice(0, 2).join("");
-  return initials.toUpperCase();
+  return parts.map(p => p[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
 };
 
 function KpiCard({ title, value, icon: Icon, colorClass, description }) {
@@ -104,9 +118,60 @@ function KpiCard({ title, value, icon: Icon, colorClass, description }) {
   );
 }
 
-function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
-  const activeData = data || DEFAULT_MOCK_DATA;
-  const { resumen_lapso, metricas_generales, control_entregas_recientes, secciones_por_trayecto } = activeData;
+// Tooltip personalizado para la gráfica de Recharts
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900 dark:bg-slate-800 text-white p-2 rounded-lg shadow-md text-xs font-semibold">
+        <p className="font-bold">{label}</p>
+        <p className="text-indigo-300">{`Avance: ${payload[0].value}%`}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+function Dashboard({ initialData = null }) {
+  const { lapsoActual } = useAuth();
+  const [dashboardData, setDashboardData] = useState(initialData || DEFAULT_MOCK_DATA);
+  const [loading, setLoading] = useState(!initialData);
+
+  useEffect(() => {
+    if (initialData) return;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const data = await getDashboardData(lapsoActual?.id);
+        if (data) {
+          setDashboardData(data);
+        }
+      } catch (error) {
+        console.error("Error al cargar los datos del dashboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [initialData, lapsoActual?.id]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <p className="text-sm font-medium text-slate-500">Cargando métricas del sistema...</p>
+      </div>
+    );
+  }
+
+  const {
+    resumen_lapso,
+    metricas_generales,
+    control_entregas_recientes,
+    secciones_por_trayecto,
+    grafica_entregas
+  } = dashboardData;
 
   const currentFormattedDate = new Date().toLocaleDateString("es-ES", {
     weekday: "long",
@@ -116,7 +181,6 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
   });
   const capitalizedDate = currentFormattedDate.charAt(0).toUpperCase() + currentFormattedDate.slice(1);
 
-  // Status Badge Mapper
   const renderStatusBadge = (status) => {
     switch (status?.toLowerCase()) {
       case 'completado':
@@ -150,14 +214,23 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
   };
 
   const getTrayectoGradient = (trayecto) => {
-    switch (trayecto?.toLowerCase()) {
+    const cleanTrayecto = String(trayecto || "").trim().toLowerCase();
+    switch (cleanTrayecto) {
       case 'trayecto i':
+      case 'trayecto 1':
+      case '1':
         return 'from-blue-500 to-cyan-500 dark:from-blue-600 dark:to-cyan-600';
       case 'trayecto ii':
+      case 'trayecto 2':
+      case '2':
         return 'from-indigo-500 to-blue-500 dark:from-indigo-600 dark:to-blue-600';
       case 'trayecto iii':
+      case 'trayecto 3':
+      case '3':
         return 'from-purple-500 to-indigo-500 dark:from-purple-600 dark:to-indigo-600';
       case 'trayecto iv':
+      case 'trayecto 4':
+      case '4':
         return 'from-pink-500 to-rose-500 dark:from-pink-600 dark:to-rose-600';
       default:
         return 'from-slate-500 to-slate-600';
@@ -166,7 +239,7 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto p-1 animate-fade-in">
-      
+
       {/* HEADER SECTION */}
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
@@ -192,15 +265,12 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
         </div>
       </div>
 
-      {/* TOP SECTION: CHART BANNER (2/3) AND KPI CARD PILE (1/3) */}
+      {/* TOP SECTION: RECHARTS BAR CHART (2/3) AND KPI CARDS (1/3) */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        
-        {/* LEFT 2/3 COLUMN: LARGE CHART AREA AND LAPSO INFO */}
+
+        {/* RECHARTS CHART CONTAINER */}
         <div className="lg:col-span-2">
           <Card className="relative overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm h-full flex flex-col justify-between">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 dark:bg-indigo-500/2 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/5 dark:bg-purple-500/2 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none" />
-            
             <CardHeader className="pb-3 relative z-10">
               <div className="flex items-center justify-between">
                 <div>
@@ -222,37 +292,36 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
             </CardHeader>
 
             <CardContent className="space-y-6 relative z-10 flex-grow flex flex-col justify-between">
-              
-              {/* THE FLEET-STYLE BAR CHART */}
-              <div className="my-2 p-4 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/60 rounded-2xl flex-grow flex flex-col justify-end min-h-[220px]">
-                <div className="flex items-end justify-between h-[180px] px-2 sm:px-6 md:px-10 gap-2 sm:gap-4">
-                  {MOCK_CHART_DATA.map((bar, idx) => (
-                    <div key={idx} className="flex-1 flex flex-col items-center group h-full justify-end">
-                      
-                      {/* Bar Container */}
-                      <div className="w-full relative flex justify-center items-end h-full">
-                        {/* Tooltip / Value on top */}
-                        <span className="absolute -top-7 scale-0 group-hover:scale-100 transition-all duration-250 bg-slate-900 text-white dark:bg-slate-50 dark:text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded shadow pointer-events-none z-20">
-                          {bar.percentage}%
-                        </span>
-                        
-                        {/* The Actual Bar */}
-                        <div 
-                          className={`w-full max-w-[36px] bg-gradient-to-t ${bar.color} rounded-t-lg transition-all duration-500 ease-out origin-bottom transform group-hover:brightness-110 shadow-sm`}
-                          style={{ height: `${bar.percentage}%` }}
-                        />
-                      </div>
-                      
-                      {/* Axis Label */}
-                      <span className="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-500 mt-2 truncate w-full text-center">
-                        {bar.label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+
+              {/* COMPONENTE RECHARTS */}
+              <div className="h-[230px] w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={grafica_entregas || DEFAULT_MOCK_DATA.grafica_entregas} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.15} />
+                    <XAxis
+                      dataKey="label"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: '#94a3b8', fontSize: 11 }}
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: '#94a3b8', fontSize: 11 }}
+                      unit="%"
+                      domain={[0, 100]}
+                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }} />
+                    <Bar dataKey="percentage" radius={[6, 6, 0, 0]}>
+                      {(grafica_entregas || DEFAULT_MOCK_DATA.grafica_entregas).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color || '#6366f1'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
 
-              {/* Progress and details */}
+              {/* BARRA DE AVANCE */}
               <div className="space-y-2">
                 <div className="flex justify-between items-baseline">
                   <span className="text-xs font-semibold text-indigo-650 dark:text-indigo-400">
@@ -265,7 +334,7 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
                 <Progress value={resumen_lapso?.porcentaje_transcurrido} className="h-2.5" />
               </div>
 
-              {/* Start & End Dates details */}
+              {/* DATES */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100 dark:border-slate-800/80">
                 <div className="flex items-start gap-3 p-2 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-800/40">
                   <div className="p-1.5 bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 rounded-lg shrink-0">
@@ -299,7 +368,7 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
           </Card>
         </div>
 
-        {/* RIGHT 1/3 COLUMN: METRIC CARDS PILED VERTICALLY */}
+        {/* METRICS COLUMN */}
         <div className="lg:col-span-1 flex flex-col justify-between gap-4">
           <KpiCard
             title="Matrícula Total"
@@ -333,10 +402,10 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
 
       </div>
 
-      {/* BOTTOM SECTION: CONTROL DE ENTREGAS (2/3) AND SECCIONES POR TRAYECTO (1/3) */}
+      {/* BOTTOM SECTION */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        
-        {/* LEFT COLUMN: CONTROL DE ENTREGAS RECIENTES TABLE (2/3) */}
+
+        {/* RECENT DELIVERIES TABLE */}
         <div className="lg:col-span-2">
           <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm overflow-hidden h-fit">
             <CardHeader className="pb-2">
@@ -426,7 +495,7 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
           </Card>
         </div>
 
-        {/* RIGHT COLUMN: SECCIONES POR TRAYECTO (1/3) */}
+        {/* TRAYECTO SECTIONS */}
         <div className="lg:col-span-1">
           <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm h-full flex flex-col justify-between overflow-hidden">
             <div>
@@ -445,12 +514,10 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
               </CardHeader>
 
               <CardContent className="space-y-4">
-                {/* Distribution List */}
                 <div className="space-y-4">
                   {secciones_por_trayecto && secciones_por_trayecto.length > 0 ? (
                     secciones_por_trayecto.map((item, idx) => {
                       const totalSec = metricas_generales?.total_secciones || 1;
-                      const percentage = Math.round((item.cantidad / totalSec) * 105) / 1.05; // avoid scaling past width bounds
                       const rawPercentage = Math.round((item.cantidad / totalSec) * 100);
                       const barGradient = getTrayectoGradient(item.trayecto);
 
@@ -460,7 +527,7 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
                             <div className="flex items-center gap-2">
                               <span className="w-2.5 h-2.5 rounded-full bg-indigo-550 group-hover:scale-125 transition-transform duration-300" />
                               <span className="font-semibold text-slate-800 dark:text-slate-300">
-                                {item.trayecto}
+                                {formatTrayectoName(item.trayecto)}
                               </span>
                             </div>
                             <div className="text-right">
@@ -473,7 +540,6 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
                             </div>
                           </div>
 
-                          {/* Beautiful customized progress bar for each trayecto */}
                           <div className="relative h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full bg-gradient-to-r ${barGradient} transition-all duration-500 ease-in-out`}
@@ -500,4 +566,4 @@ function Dasbhoard({ data = DEFAULT_MOCK_DATA }) {
   );
 }
 
-export default Dasbhoard;
+export default Dashboard;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Search, BookOpen, Check, AlertCircle, Clock, FolderOpen, Loader2, MessageSquare, X } from "lucide-react";
+import { Search, BookOpen, Check, AlertCircle, Clock, FolderOpen, Loader2, MessageSquare, X, Paperclip } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { ModernTextarea } from "@/components/shared/ModernTextarea";
@@ -9,21 +9,38 @@ import { useFormik } from "formik";
 import { ModernInput } from "@/components/shared/InputModerno";
 
 // ─── Deliverable Card Component (Extracted to manage state and prevent focus loss) ───
-const EntregableCard = ({ doc, entregado, observaciones, onToggleEntrega, docenteId, seccionId }) => {
+const EntregableCard = ({ doc, entregado, observaciones, archivoUrl, onToggleEntrega, docenteId, seccionId, ucNombre, ucId, asignacionId }) => {
   const [isObsOpen, setIsObsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [archivo, setArchivo] = useState(null);
 
   const formik = useFormik({
     initialValues: { observationText: observaciones || "" },
     enableReinitialize: true,
     onSubmit: async (values) => {
-      if (!values.observationText.trim()) return;
+      // Allow submit if there is text or a file
+      if (!values.observationText.trim() && !archivo) return;
       setIsSaving(true);
       try {
-        await onToggleEntrega(docenteId, doc.id, seccionId, true, values.observationText);
+        let accionTexto = observaciones ? "Actualizó la observación de" : "Agregó observación a";
+        if (archivo) {
+          accionTexto = "Adjuntó un archivo a";
+        }
+        await onToggleEntrega(docenteId, doc.id, seccionId, ucNombre, true, values.observationText, accionTexto, archivo, null, ucId, asignacionId);
         setIsObsOpen(false);
+        setArchivo(null);
       } catch (error) {
         console.error("Error saving observation:", error);
+        if (error.response && error.response.status === 422) {
+          const laravelErrors = error.response.data.errors;
+          const formikErrors = {};
+          Object.keys(laravelErrors).forEach((key) => {
+            formikErrors[key] = laravelErrors[key][0];
+          });
+          formik.setErrors(formikErrors);
+        } else {
+          // If not 422, the parent already shows a toast, or we could show one here if desired
+        }
       } finally {
         setIsSaving(false);
       }
@@ -39,16 +56,25 @@ const EntregableCard = ({ doc, entregado, observaciones, onToggleEntrega, docent
     e.stopPropagation();
     setIsObsOpen(false);
     formik.resetForm();
+    setArchivo(null);
   };
+
+  const uniqueHtmlId = `switch-sec-${seccionId}-uc-${ucId}-doc-${doc.id}`;
+  const uniqueObsId = `obs-sec-${seccionId}-uc-${ucId}-doc-${doc.id}`;
 
   return (
     <div className="relative">
       <div
-        onClick={() => onToggleEntrega(docenteId, doc.id, seccionId, !entregado)}
+        onClick={(e) => onToggleEntrega(docenteId, doc.id, seccionId, ucNombre, !entregado, null, !entregado ? "Marcó" : "Desmarcó", null, e, ucId, asignacionId)}
         className="flex items-center justify-between p-3.5 bg-card border border-border/80 rounded-xl hover:border-slate-300 dark:hover:border-slate-700/80 transition-colors shadow-xs cursor-pointer select-none"
       >
         <div className="flex items-center gap-3">
-          <div className={`size-7 rounded-lg flex items-center justify-center ${entregado ? "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400" : "bg-slate-100 text-muted-foreground dark:bg-slate-800"}`}>
+          <div 
+            id={uniqueHtmlId}
+            role="switch"
+            aria-checked={entregado}
+            className={`size-7 rounded-lg flex items-center justify-center ${entregado ? "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400" : "bg-slate-100 text-muted-foreground dark:bg-slate-800"}`}
+          >
             {entregado ? (
               <Check className="size-4 stroke-[3px]" />
             ) : (
@@ -56,10 +82,26 @@ const EntregableCard = ({ doc, entregado, observaciones, onToggleEntrega, docent
             )}
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-bold text-foreground">{doc.nombre}</span>
-            <span className="text-[10px] text-muted-foreground mt-0.5">
-              {entregado ? "Entregado" : "Pendiente"}
-            </span>
+            <label htmlFor={uniqueHtmlId} className="text-xs font-bold text-foreground cursor-pointer">
+              {doc.nombre}
+            </label>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-[10px] text-muted-foreground">
+                {entregado ? "Entregado" : "Pendiente"}
+              </span>
+              {archivoUrl && (
+                <a
+                  href={archivoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-blue-500 hover:text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 bg-blue-500/10 size-6 rounded-full flex items-center justify-center transition-colors"
+                  title="Ver archivo adjunto"
+                >
+                  <Paperclip className="size-3.5" />
+                </a>
+              )}
+            </div>
           </div>
         </div>
 
@@ -84,10 +126,10 @@ const EntregableCard = ({ doc, entregado, observaciones, onToggleEntrega, docent
               >
                 <form onSubmit={formik.handleSubmit}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                    <label htmlFor={uniqueObsId} className="text-sm font-bold text-foreground flex items-center gap-1.5 cursor-pointer">
                       <MessageSquare className="size-4 text-blue-500" />
                       Añadir Observación
-                    </span>
+                    </label>
                     <button
                       type="button"
                       onClick={handleCloseObservation}
@@ -98,7 +140,7 @@ const EntregableCard = ({ doc, entregado, observaciones, onToggleEntrega, docent
                   </div>
                   
                   <ModernTextarea
-                    id="observationText"
+                    id={uniqueObsId}
                     name="observationText"
                     value={formik.values.observationText}
                     onChange={formik.handleChange}
@@ -107,6 +149,29 @@ const EntregableCard = ({ doc, entregado, observaciones, onToggleEntrega, docent
                     disabled={isSaving}
                     autoFocus
                   />
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground">Adjuntar Archivo (Opcional)</label>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      onChange={(e) => {
+                        setArchivo(e.target.files[0]);
+                        if (formik.errors.archivo) formik.setFieldError("archivo", undefined);
+                      }}
+                      className={`flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
+                        formik.errors.archivo 
+                          ? "border-red-500 bg-red-50 text-red-900 dark:bg-red-950/30 dark:border-red-800" 
+                          : "border-input bg-transparent"
+                      }`}
+                      disabled={isSaving}
+                    />
+                    {formik.errors.archivo && (
+                      <span className="text-red-500 text-sm mt-1 block">
+                        {formik.errors.archivo}
+                      </span>
+                    )}
+                  </div>
                   
                   <div className="flex items-center justify-end gap-2 pt-3">
                     <Button
@@ -123,7 +188,7 @@ const EntregableCard = ({ doc, entregado, observaciones, onToggleEntrega, docent
                       type="submit"
                       variant="default"
                       size="sm"
-                      disabled={!formik.values.observationText.trim() || isSaving}
+                      disabled={(!formik.values.observationText.trim() && !archivo) || isSaving}
                       className="h-8 text-xs px-3"
                     >
                       {isSaving ? (
@@ -348,6 +413,7 @@ export default function DocenteAccordion({
                         const entregaData = docente.entregas_globales?.[doc.id];
                         const entregado = entregaData?.entregado || false;
                         const observaciones = entregaData?.observaciones || "";
+                        const archivoUrl = entregaData?.archivo_url || null;
                         
                         return (
                           <EntregableCard
@@ -355,8 +421,10 @@ export default function DocenteAccordion({
                             doc={doc}
                             entregado={entregado}
                             observaciones={observaciones}
+                            archivoUrl={archivoUrl}
                             docenteId={docente.docente_id}
                             seccionId={null}
+                            ucNombre={null}
                             onToggleEntrega={onToggleEntrega}
                           />
                         );
@@ -395,15 +463,20 @@ export default function DocenteAccordion({
                           const entregaData = seccion.entregas?.[doc.id];
                           const entregado = entregaData?.entregado || false;
                           const observaciones = entregaData?.observaciones || "";
+                          const archivoUrl = entregaData?.archivo_url || null;
                           
                           return (
                             <EntregableCard
-                              key={`sec-${seccion.seccion_id}-${index}-${doc.id}`}
+                              key={`sec-${seccion.seccion_id}-${seccion.uc_nombre}-${doc.id}`}
                               doc={doc}
                               entregado={entregado}
                               observaciones={observaciones}
+                              archivoUrl={archivoUrl}
                               docenteId={docente.docente_id}
                               seccionId={seccion.seccion_id}
+                              ucNombre={seccion.uc_nombre}
+                              ucId={seccion.unidad_curricular_id || seccion.uc_id}
+                              asignacionId={seccion.id || seccion.asignacion_id}
                               onToggleEntrega={onToggleEntrega}
                             />
                           );

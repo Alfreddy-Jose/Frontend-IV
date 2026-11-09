@@ -10,9 +10,8 @@ const SuccessToast = ({ message, t }) => {
 
   return (
     <div
-      className={`${
-        t.visible ? "animate-enter" : "animate-leave"
-      } max-w-md w-full ${isDark ? "bg-[#0f172a]" : "bg-white"} border ${isDark ? "border-slate-700" : "border-gray-200"} shadow-2xl rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+      className={`${t.visible ? "animate-enter" : "animate-leave"
+        } max-w-md w-full ${isDark ? "bg-[#0f172a]" : "bg-white"} border ${isDark ? "border-slate-700" : "border-gray-200"} shadow-2xl rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
     >
       <div className="flex-1 w-0 p-4">
         <div className="flex items-start">
@@ -53,7 +52,13 @@ const SuccessToast = ({ message, t }) => {
       >
         <button
           type="button"
-          onClick={() => toast.dismiss(t.id)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const toastId = t?.id ?? t;
+            toast.dismiss(toastId);
+          }}
+          aria-label="Cerrar notificación"
           className={`w-full border border-transparent rounded-none rounded-r-xl p-4 flex items-center justify-center text-sm font-medium ${isDark ? "text-indigo-400 hover:text-indigo-300 hover:bg-slate-800/50" : "text-indigo-600 hover:text-indigo-500 hover:bg-gray-100"} transition-colors focus:outline-none`}
         >
           Cerrar
@@ -72,9 +77,8 @@ const ErrorToast = ({ message, t }) => {
 
   return (
     <div
-      className={`${
-        t.visible ? "animate-enter" : "animate-leave"
-      } max-w-md w-full ${isDark ? "bg-[#0f172a]" : "bg-white"} border ${isDark ? "border-red-700" : "border-red-300"} shadow-2xl rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+      className={`${t.visible ? "animate-enter" : "animate-leave"
+        } max-w-md w-full ${isDark ? "bg-[#0f172a]" : "bg-white"} border ${isDark ? "border-red-700" : "border-red-300"} shadow-2xl rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
     >
       <div className="flex-1 w-0 p-4">
         <div className="flex items-start">
@@ -129,6 +133,71 @@ const ErrorToast = ({ message, t }) => {
     </div>
   );
 };
+const InfoToast = ({ message, t }) => {
+  const { theme } = useTheme();
+  const isDark =
+    theme === "dark" ||
+    (theme === "system" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  return (
+    <div
+      className={`${t.visible ? "animate-enter" : "animate-leave"
+        } max-w-md w-full ${isDark ? "bg-[#0f172a]" : "bg-white"} border ${isDark ? "border-slate-700" : "border-gray-200"} shadow-2xl rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+    >
+      <div className="flex-1 w-0 p-4">
+        <div className="flex items-start">
+          <div className="flex-shrink-0 pt-0.5">
+            <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+              <svg
+                className="h-6 w-6 text-blue-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div className="ml-3 flex-1">
+            <p
+              className={`text-sm font-semibold ${isDark ? "text-slate-100" : "text-slate-900"}`}
+            >
+              Información
+            </p>
+            <p
+              className={`mt-1 text-sm ${isDark ? "text-slate-400" : "text-gray-600"}`}
+            >
+              {message}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        className={`flex border-l ${isDark ? "border-slate-700" : "border-gray-200"}`}
+      >
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const toastId = t?.id ?? t;
+            toast.dismiss(toastId);
+          }}
+          aria-label="Cerrar notificación"
+          className={`w-full border border-transparent rounded-none rounded-r-xl p-4 flex items-center justify-center text-sm font-medium ${isDark ? "text-indigo-400 hover:text-indigo-300 hover:bg-slate-800/50" : "text-indigo-600 hover:text-indigo-500 hover:bg-gray-100"} transition-colors focus:outline-none`}
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export const notify = {
   success: (message) =>
@@ -137,6 +206,9 @@ export const notify = {
   error: (message) =>
     toast.custom((t) => <ErrorToast message={message} t={t} />),
 
+  info: (message) =>
+    toast.custom((t) => <InfoToast message={message} t={t} />),
+
   // NUEVA FUNCIÓN DE PROMESA
   promise: (promise, messages) => {
     return toast.promise(
@@ -144,7 +216,7 @@ export const notify = {
       {
         loading: messages.loading || "Cargando...",
         // Usamos los mismos componentes personalizados para el éxito y error
-      success: <b>{messages.success || "Cierre de sesión exitoso"}!</b>
+        success: <b>{messages.success || "Cierre de sesión exitoso"}!</b>
       },
       {
         error: messages.error || "Hubo un problema",

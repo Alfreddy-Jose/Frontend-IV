@@ -92,7 +92,7 @@ export default function Coordinador() {
                     columns={columnsCoordinador(handleDelete)}
                     data={coordinadores}
                     loading={loading}
-                    filterColumn="cedula"
+                    filterColumn="nombre"
                 />
             </div>
         </div>

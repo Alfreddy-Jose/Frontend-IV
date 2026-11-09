@@ -1,28 +1,37 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { notify } from "@/components/shared/Notify";
 import { ModalFormulario } from "@/components/shared/ModalFormulario";
-import { ModernInput } from "@/components/shared/InputModerno";
 import { Label } from "@/components/ui/label";
 import { PlusIcon } from "lucide-react";
 import SelectSearch from "@/components/shared/SelectSearch";
 import { createDocente } from "@/services/docenteService";
 import { DateField } from "@/components/shared/DateField";
+import { getUnidadesCurricularesByPnf } from "@/services/unidadCurricularService";
+import { useAuth } from "@/context/AuthContext";
 
 export default function CreateDocenteModal({ fetchDocente, dataSelect }) {
   const [openModal, setOpenModal] = useState(false);
 
+  // Estado local para almacenar las UCs filtradas por el PNF seleccionado
+  const [unidadesCurricularesOptions, setUnidadesCurricularesOptions] = useState([]);
+  const [loadingUC, setLoadingUC] = useState(false);
+
+  // obtener pnf del usuario logueado
+  const { pnf } = useAuth();
+
   const validationSchema = useMemo(
     () =>
       Yup.object({
-        persona_id: Yup.number().required("Este campo es obligatorio"), // Campo requerido
-        pnf_id: Yup.number().required("Este campo es obligatorio"), // Campo obligatorio
-        categoria: Yup.string().required("Este campo es obligatorio"), // Campo requerido
-        // fecha_fin: Yup.date().required("Este campo es obligatorio"),
+        persona_id: Yup.number().required("Este campo es obligatorio"),
+        pnf_id: Yup.number().required("Este campo es obligatorio"),
+        categoria: Yup.string().required("Este campo es obligatorio"),
         dedicacion: Yup.string().required("Este campo es obligatorio"),
         tipo: Yup.string().required("Este campo es obligatorio"),
-        unidad_curricular_id: Yup.array().required("Este campo es obligatorio"),
+        unidad_curricular_id: Yup.array()
+          .min(1, "Debe seleccionar al menos una unidad curricular")
+          .required("Este campo es obligatorio"),
         fecha_inicio: Yup.date()
           .transform((value, originalValue) =>
             originalValue === "" || originalValue == null ? null : value,
@@ -60,7 +69,7 @@ export default function CreateDocenteModal({ fetchDocente, dataSelect }) {
   const formik = useFormik({
     initialValues: {
       persona_id: "",
-      pnf_id: "",
+      pnf_id: pnf || "",
       categoria: "",
       fecha_inicio: "",
       fecha_fin: "",
@@ -68,41 +77,43 @@ export default function CreateDocenteModal({ fetchDocente, dataSelect }) {
       tipo: "",
       unidad_curricular_id: [],
     },
+    enableReinitialize: true,
     validationSchema,
     validateOnBlur: true,
     validateOnChange: true,
 
     onSubmit: async (values, { resetForm, setErrors }) => {
       try {
-        // Prevenir desfase de zonas horarias extrayendo YYYY-MM-DD
         const formatDate = (dateObj) => {
-            if (!dateObj) return null;
-            try {
-                return new Date(dateObj).toISOString().split('T')[0];
-            } catch (e) {
-                return dateObj;
-            }
+          if (!dateObj) return null;
+          try {
+            return new Date(dateObj).toISOString().split("T")[0];
+          } catch (e) {
+            return dateObj;
+          }
         };
 
         const formattedValues = {
-            ...values,
-            fecha_inicio: formatDate(values.fecha_inicio),
-            fecha_fin: formatDate(values.fecha_fin),
+          ...values,
+          fecha_inicio: formatDate(values.fecha_inicio),
+          fecha_fin: formatDate(values.fecha_fin),
         };
 
-        //calcular el campo horas de dedicacion si es tiempo completo 18 horas sino 12
-        formattedValues.horas_dedicacion = formattedValues.dedicacion === "TIEMPO COMPLETO" ? 18 : 12;
+        formattedValues.horas_dedicacion =
+          formattedValues.dedicacion === "TIEMPO COMPLETO" ? 18 : 12;
+
         const response = await createDocente(formattedValues);
         const menssageSuccess =
           response?.message ||
           response?.data?.message ||
           "Docente creado con éxito";
+
         notify.success(menssageSuccess);
         fetchDocente();
         setOpenModal(false);
         resetForm();
+        setUnidadesCurricularesOptions([]); // Resetear la lista al cerrar
       } catch (error) {
-        // Si el backend (Laravel) devuelve errores de validación (usualmente status 422)
         if (error.response && error.response.status === 422) {
           const laravelErrors = error.response.data.errors;
           const formikErrors = {};
@@ -113,13 +124,52 @@ export default function CreateDocenteModal({ fetchDocente, dataSelect }) {
 
           setErrors(formikErrors);
         } else {
-          // Errores generales (500, conexión, etc.)
           console.error("Error al crear el docente:", error);
           notify.error("Error al crear el docente.");
         }
       }
     },
   });
+
+  // EFECTO DE CASCADA / SELECT DEPENDIENTE
+  useEffect(() => {
+    // 1. SI EL MODAL ESTÁ CERRADO, NO HACER NADA EN ABSOLUTO
+    if (!openModal) return;
+
+    const currentPnfId = formik.values.pnf_id;
+
+    // 2. VALIDAR ESTRICTAMENTE: debe ser un entero positivo válido
+    const parsedId = parseInt(currentPnfId, 10);
+    const isValidPnf =
+      currentPnfId &&
+      currentPnfId !== "null" &&
+      !isNaN(parsedId) &&
+      parsedId > 0;
+
+    if (isValidPnf) {
+      setLoadingUC(true);
+
+      // Limpiar unidades seleccionadas previamente
+      formik.setFieldValue("unidad_curricular_id", []);
+
+      getUnidadesCurricularesByPnf(parsedId)
+        .then((data) => {
+          const unidades = Array.isArray(data) ? data : data?.data || [];
+          setUnidadesCurricularesOptions(unidades);
+        })
+        .catch((err) => {
+          console.error("Error al cargar unidades curriculares:", err);
+          notify.error("No se pudieron cargar las unidades curriculares.");
+          setUnidadesCurricularesOptions([]);
+        })
+        .finally(() => {
+          setLoadingUC(false);
+        });
+    } else {
+      setUnidadesCurricularesOptions([]);
+      formik.setFieldValue("unidad_curricular_id", []);
+    }
+  }, [formik.values.pnf_id, openModal]);
 
   return (
     <ModalFormulario
@@ -129,11 +179,17 @@ export default function CreateDocenteModal({ fetchDocente, dataSelect }) {
       icon={<PlusIcon />}
       onSubmit={formik.handleSubmit}
       open={openModal}
-      onOpenChange={setOpenModal}
+      onOpenChange={(status) => {
+        setOpenModal(status);
+        if (!status) {
+          formik.resetForm();
+          setUnidadesCurricularesOptions([]);
+        }
+      }}
       loading={formik.isSubmitting}
     >
       {/* Select para buscar Docente */}
-      <div className="md:col-span-4 space-y-1 flex flex-col">
+      <div className="md:col-span-5 space-y-1 flex flex-col">
         <Label htmlFor="persona_id">Buscar Docente</Label>
         <SelectSearch
           name="persona_id"
@@ -151,7 +207,7 @@ export default function CreateDocenteModal({ fetchDocente, dataSelect }) {
       </div>
 
       {/* Select para PNF */}
-      <div className="md:col-span-8 space-y-1 flex flex-col">
+      <div className="md:col-span-7 space-y-1 flex flex-col">
         <Label htmlFor="pnf_id">PNF</Label>
         <SelectSearch
           name="pnf_id"
@@ -159,6 +215,7 @@ export default function CreateDocenteModal({ fetchDocente, dataSelect }) {
           formik={formik}
           valueKey="id"
           labelKey="nombre"
+          disabled={Boolean(pnf)}
           placeholder="Seleccionar PNF"
         />
         {formik.touched.pnf_id && formik.errors.pnf_id && (
@@ -218,7 +275,7 @@ export default function CreateDocenteModal({ fetchDocente, dataSelect }) {
 
       {/* Select para Categoría */}
       <div className="md:col-span-4 space-y-1 flex flex-col">
-        <Label htmlFor="categoria">Categría</Label>
+        <Label htmlFor="categoria">Categoría</Label>
         <SelectSearch
           name="categoria"
           options={[
@@ -258,21 +315,31 @@ export default function CreateDocenteModal({ fetchDocente, dataSelect }) {
         )}
       </div>
 
-      {/* Select para Tipo */}
+      {/* Select dependiente para Unidad Curricular */}
       <div className="md:col-span-12 space-y-1 flex flex-col">
         <Label htmlFor="unidad_curricular_id">Unidad Curricular</Label>
         <SelectSearch
           name="unidad_curricular_id"
-          options={dataSelect.unidadesCurriculares}
+          options={unidadesCurricularesOptions}
           isMulti={true}
           formik={formik}
-          placeholder="Seleccione una o +opciones"
+          valueKey="id"
+          labelKey="nombre"
+          isDisabled={!formik.values.pnf_id || loadingUC}
+          placeholder={
+            loadingUC
+              ? "Cargando unidades..."
+              : !formik.values.pnf_id
+                ? "Seleccione un PNF primero"
+                : "Seleccione una o más opciones"
+          }
         />
-        {formik.touched.unidad_curricular_id && formik.errors.unidad_curricular_id && (
-          <p className="text-xs text-red-500 font-medium">
-            {formik.errors.unidad_curricular_id}
-          </p>
-        )}
+        {formik.touched.unidad_curricular_id &&
+          formik.errors.unidad_curricular_id && (
+            <p className="text-xs text-red-500 font-medium">
+              {formik.errors.unidad_curricular_id}
+            </p>
+          )}
       </div>
     </ModalFormulario>
   );

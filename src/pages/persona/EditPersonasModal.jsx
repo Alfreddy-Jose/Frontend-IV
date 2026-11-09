@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { getPersonaById, updatePersona } from "@/services/personaService";
+import { getPersonaById, updatePersona, getSeccionesByPnf } from "@/services/personaService";
+import { useAuth } from "@/context/AuthContext";
 import { notify } from "@/components/shared/Notify";
 import { ModalFormulario } from "@/components/shared/ModalFormulario";
 import { ModernInput } from "@/components/shared/InputModerno";
@@ -17,6 +18,24 @@ export default function EditPersonasModal({ isOpen, onClose, personaId, onSucces
   
   const [municipios, setMunicipios] = useState([]);
   const [loadingMunicipios, setLoadingMunicipios] = useState(false);
+  const { user, pnf } = useAuth();
+  const [secciones, setSecciones] = useState([]);
+  const [loadingSecciones, setLoadingSecciones] = useState(false);
+
+  const cargarSecciones = useCallback(async () => {
+    setLoadingSecciones(true);
+    try {
+      const esCoordinador = user?.roles[0]?.name === "COORDINADOR";
+      // Si es coordinador y tiene pnf, pasa el id del pnf; de lo contrario pasa null
+      const data = await getSeccionesByPnf(esCoordinador && pnf ? pnf : null);
+      setSecciones(data);
+    } catch (error) {
+      console.error("Error al cargar Secciones:", error);
+      setSecciones([]);
+    } finally {
+      setLoadingSecciones(false);
+    }
+  }, [user, pnf]);
 
   const cargarMunicipios = useCallback(async (estadoId) => {
     if (!estadoId) {
@@ -89,6 +108,11 @@ export default function EditPersonasModal({ isOpen, onClose, personaId, onSucces
           .max(11, "Máximo 11 números"), // Máximo 11 números
         email: Yup.string().email("Correo no válido"),
         tipo_persona: Yup.string().required("Este campo es obligatorio"), // Campo requerido
+        seccion_id: Yup.string().when("tipo_persona", {
+          is: "ESTUDIANTE",
+          then: (schema) => schema.required("Debes seleccionar una sección para el estudiante"),
+          otherwise: (schema) => schema.nullable(),
+        }),
         grado_inst: Yup.string().required("Este campo es obligatorio"), // Campo requerido
         estado_id: Yup.string().required("Este campo es obligatorio"),
         municipio_id: Yup.string().required("Este campo es obligatorio"),
@@ -106,6 +130,7 @@ export default function EditPersonasModal({ isOpen, onClose, personaId, onSucces
       telefono: editingPersona?.telefono || "",
       email: editingPersona?.email || "",
       tipo_persona: editingPersona?.tipo_persona || "",
+      seccion_id: editingPersona?.estudiante?.secciones?.[0]?.id || "",
       grado_inst: editingPersona?.grado_inst || "",
       estado_id: editingPersona?.municipio?.estado?.id_estado || "",
       municipio_id: editingPersona?.municipio?.id_municipio || "",
@@ -172,6 +197,18 @@ export default function EditPersonasModal({ isOpen, onClose, personaId, onSucces
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.estado_id, cargarMunicipios, setFieldValue, editingPersona]);
 
+  // Efecto para cargar secciones cuando tipo_persona es ESTUDIANTE
+  useEffect(() => {
+    if (isOpen) {
+      if (values.tipo_persona === "ESTUDIANTE") {
+        cargarSecciones();
+      } else {
+        setFieldValue("seccion_id", "");
+        setSecciones([]);
+      }
+    }
+  }, [values.tipo_persona, isOpen, setFieldValue, cargarSecciones]);
+
   // Inicializar el hook de mayúsculas
   const { handleUpperCaseChange } = useUpperCase(formik);
 
@@ -208,12 +245,12 @@ export default function EditPersonasModal({ isOpen, onClose, personaId, onSucces
 
       {/* Input Nombre */}
       <div className="md:col-span-4 space-y-1 flex flex-col">
-        <Label htmlFor="nombre">Nombre</Label>
+        <Label htmlFor="nombre">Nombres</Label>
         <ModernInput
           id="nombre"
           name="nombre"
           type="text"
-          placeholder="EJ: MIGUEL"
+          placeholder="EJ: MIGUEL ANTONIO"
           onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre}
@@ -227,12 +264,12 @@ export default function EditPersonasModal({ isOpen, onClose, personaId, onSucces
 
       {/* Input Apellido */}
       <div className="md:col-span-5 space-y-1 flex flex-col">
-        <Label htmlFor="apellido">Apellido</Label>
+        <Label htmlFor="apellido">Apellidos</Label>
         <ModernInput
           id="apellido"
           name="apellido"
           type="text"
-          placeholder="EJ: PÉREZ"
+          placeholder="EJ: PÉREZ GONZÁLEZ"
           onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.apellido}
@@ -299,6 +336,32 @@ export default function EditPersonasModal({ isOpen, onClose, personaId, onSucces
           <p className="text-xs text-red-500 font-medium">{formik.errors.tipo_persona}</p>
         )}
       </div>
+
+      {/* Select Sección condicional para Estudiante */}
+      {formik.values.tipo_persona === "ESTUDIANTE" && (
+        <div className="md:col-span-6 space-y-1 flex flex-col">
+          <Label htmlFor="seccion_id">Sección</Label>
+          <SelectSearch
+            placeholder={
+              loadingSecciones
+                ? "Cargando secciones..."
+                : secciones?.length === 0
+                  ? "No hay secciones disponibles"
+                  : "Seleccione una sección"
+            }
+            name="seccion_id"
+            options={secciones}
+            labelKey="nombre"
+            valueKey="id"
+            value={formik.values.seccion_id}
+            formik={formik}
+            disabled={loadingSecciones || secciones?.length === 0}
+          />
+          {formik.touched.seccion_id && formik.errors.seccion_id && (
+            <p className="text-xs text-red-500 font-medium">{formik.errors.seccion_id}</p>
+          )}
+        </div>
+      )}
 
       {/* Select para grado de instruccion */}
       <div className="md:col-span-6 space-y-1 flex flex-col">

@@ -36,7 +36,7 @@ export default function Matriculas() {
   };
 
   const handleDelete = (matricula) => {
-    setDeletingId(matricula.id);
+    setDeletingId(matricula.id); 
   };
 
   useEffect(() => {

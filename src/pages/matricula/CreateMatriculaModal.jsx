@@ -1,17 +1,18 @@
+import React, { useEffect, useMemo, useState } from "react";
 import { ModernInput } from "@/components/shared/InputModerno";
 import { ModalFormulario } from "@/components/shared/ModalFormulario";
 import { notify } from "@/components/shared/Notify";
 import { Label } from "@/components/ui/label";
-import { useCapitalize } from "@/hooks/useCapitalize";
+import { useUpperCase } from "@/hooks/useUpperCase";
 import { createMatricula } from "@/services/matriculaService";
 import { useFormik } from "formik";
 import { PlusIcon } from "lucide-react";
-import React, { useEffect, useMemo, useState } from "react";
 import * as Yup from "yup";
 
 export default function CreateMatriculaModal({ fetchMatriculas }) {
   const [openModal, setOpenModal] = useState(false);
 
+  // Validaciones del fronted 
   const validationSchema = useMemo(
     () =>
       Yup.object({
@@ -30,6 +31,7 @@ export default function CreateMatriculaModal({ fetchMatriculas }) {
       numero: "",
       nombre: "",
     },
+    // Agregar validaciones
     validationSchema,
     validateOnBlur: true,
     validateOnChange: true,
@@ -69,8 +71,8 @@ export default function CreateMatriculaModal({ fetchMatriculas }) {
     }
   }, [openModal]);
   
-    // Inicializar el hook de capitalización
-    const { handleCapitalizeChange } = useCapitalize(formik);
+    // Inicializar el hook de mayusculas
+    const { handleUpperCaseChange } = useUpperCase(formik);
 
   return (
     <ModalFormulario
@@ -111,7 +113,7 @@ export default function CreateMatriculaModal({ fetchMatriculas }) {
           name="nombre"
           type="text"
           placeholder="EJ: REGULAR"
-          onChange={handleCapitalizeChange}
+          onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre}
           className="mb-4"

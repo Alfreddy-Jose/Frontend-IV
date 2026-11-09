@@ -10,6 +10,16 @@ export const getUnidadCurricularById = async (id) => {
     return response.data;
 }
 
+export const getUnidadesCurricularesByPnf = async (pnfId) => {
+    // Guardia: no hacer la petición si pnfId no es un entero válido
+    const parsedId = parseInt(pnfId, 10);
+    if (!pnfId || pnfId === "null" || isNaN(parsedId) || parsedId <= 0) {
+        return [];
+    }
+    const response = await Api.get(`/pnf/${parsedId}/unidades_curriculares`);
+    return response.data;
+}
+
 export const createUnidadCurricular = async (data) => {
     const response = await Api.post('/unidad_curricular', data);
     return response.data;

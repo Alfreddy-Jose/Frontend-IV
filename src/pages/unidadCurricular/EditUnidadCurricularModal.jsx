@@ -16,6 +16,8 @@ export default function EditUnidadCurricularModal({
   ucId,
   onSuccess,
   trayectos,
+  pnfId = null, // Recibe el ID del PNF si el usuario lo tiene asignado
+  pnfs = [],    // Recibe el listado de PNFs si no tiene un pnfId
 }) {
   const [editingUc, setEditingUc] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -24,9 +26,23 @@ export default function EditUnidadCurricularModal({
   const [trimestres, setTrimestres] = useState([]);
   const [loadingTrimestres, setLoadingTrimestres] = useState(false);
 
+  const normalizePeriodo = (value) => {
+    const periodo = String(value ?? "").trim().toUpperCase();
+    if (periodo === "1" || periodo === "TRIMESTRAL") return "TRIMESTRAL";
+    if (periodo === "2" || periodo === "SEMESTRAL") return "SEMESTRAL";
+    if (periodo === "3" || periodo === "ANUAL") return "ANUAL";
+    return periodo;
+  };
+
   const validationSchema = useMemo(
     () =>
       Yup.object({
+        pnf_id: pnfId
+          ? Yup.mixed().notRequired()
+          : Yup.string().required("Este campo es obligatorio"),
+        codigo: Yup.string()
+          .matches(/^[0-9]+$/, "Solo se permiten números")
+          .required("Este campo es obligatorio"),
         nombre: Yup.string()
           .matches(/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$/, "Solo letras permitidas")
           .required("Este campo es obligatorio"),
@@ -45,35 +61,29 @@ export default function EditUnidadCurricularModal({
         periodo: Yup.string().required("Este campo es obligatorio"),
         trayecto_id: Yup.string().required("Este campo es obligatorio"),
         descripcion: Yup.string().optional(),
-        // Primero definir una validación base
         trimestre_id: Yup.mixed().test(
           "trimestre-validation",
           function (value) {
             const { periodo } = this.parent;
+            const normalizedPeriodo = normalizePeriodo(periodo);
 
-            // Si no hay período seleccionado, no validar
-            if (!periodo) return true;
+            if (!normalizedPeriodo) return true;
 
-            if (periodo === "1") {
-              // TRIMESTRAL
-              // Debe ser un número (no array) o un string válido
+            if (normalizedPeriodo === "TRIMESTRAL") {
               if (value === null || value === undefined || value === "") {
                 return this.createError({
                   message: "Este campo es obligatorio",
                 });
               }
               return true;
-            } else if (periodo === "2" || periodo === "3") {
-              // SEMESTRAL o ANUAL
-              // Debe ser un array con al menos un elemento
+            } else if (normalizedPeriodo === "SEMESTRAL" || normalizedPeriodo === "ANUAL") {
               if (!Array.isArray(value) || value.length === 0) {
                 return this.createError({
                   message: "Este campo es obligatorio",
                 });
               }
 
-              // Validación adicional para SEMESTRAL (exactamente 2 trimestres)
-              if (periodo === "2" && value.length !== 2) {
+              if (normalizedPeriodo === "SEMESTRAL" && value.length !== 2) {
                 return this.createError({
                   message:
                     "Debe seleccionar exactamente 2 trimestres para período semestral",
@@ -87,27 +97,28 @@ export default function EditUnidadCurricularModal({
           },
         ),
       }),
-    [],
+    [pnfId],
   );
 
   const getTrimestresIds = (ucData) => {
     if (!ucData || !ucData.trimestres || ucData.trimestres.length === 0) return "";
-    const periodo = String(ucData.periodo);
-    if (periodo === "1") {
+    const periodo = normalizePeriodo(ucData.periodo);
+    if (periodo === "TRIMESTRAL") {
       return ucData.trimestres[0]?.id ?? ucData.trimestres[0]?.trimestre_id ?? "";
-    } else {
-      return ucData.trimestres.map((t) => t.id ?? t.trimestre_id);
     }
+    return ucData.trimestres.map((t) => t.id ?? t.trimestre_id);
   };
 
   const formik = useFormik({
     initialValues: {
+      pnf_id: pnfId || editingUc?.pnf_id || "",
+      codigo: editingUc?.codigo || "",
       nombre: editingUc?.nombre || "",
       unidad_credito: editingUc?.unidad_credito || "",
       hora_practica: editingUc?.hora_practica || "",
       hora_teorica: editingUc?.hora_teorica || "",
       hora_total_est: editingUc?.hora_total_est || "",
-      periodo: editingUc?.periodo ? String(editingUc.periodo) : "",
+      periodo: editingUc?.periodo ? normalizePeriodo(editingUc.periodo) : "",
       trayecto_id: editingUc?.trayecto_id || "",
       trimestre_id: editingUc ? getTrimestresIds(editingUc) : "",
       descripcion: editingUc?.descripcion || "",
@@ -120,7 +131,12 @@ export default function EditUnidadCurricularModal({
     onSubmit: async (values, { setErrors }) => {
       setLoading(true);
       try {
-        const response = await updateUnidadCurricular(editingUc.id, values);
+        const dataToSend = {
+          ...values,
+          pnf_id: pnfId || values.pnf_id,
+        };
+
+        const response = await updateUnidadCurricular(editingUc.id, dataToSend);
         const menssageSuccess = response?.message || response?.data?.message || "Unidad Curricular actualizada con éxito";
         notify.success(menssageSuccess);
         onSuccess();
@@ -153,19 +169,16 @@ export default function EditUnidadCurricularModal({
         try {
           const ucData = await getUnidadCurricularById(ucId);
 
-          // Determinar el trayecto basado en los trimestres
           let trayectoId = ucData.trayecto_id || "";
           if (ucData.trimestres && ucData.trimestres.length > 0) {
             trayectoId = String(ucData.trimestres[0].trayecto_id);
           }
 
-          // Cargar los trimestres del trayecto original usando el servicio
           if (trayectoId) {
             const trimestresData = await getTrimestresByTrayecto(trayectoId);
             setTrimestres(trimestresData);
           }
 
-          // Setear la data a editar agregando el trayecto_id calculado
           setEditingUc({
             ...ucData,
             trayecto_id: trayectoId,
@@ -226,36 +239,32 @@ export default function EditUnidadCurricularModal({
   }, [formik.values.trayecto_id]);
 
   // Determinar el modo de selección de trimestres según el periodo
-  const periodoSeleccionado = String(formik.values.periodo);
+  const periodoSeleccionado = normalizePeriodo(formik.values.periodo);
   const isTrimestreMulti =
-    periodoSeleccionado === "2" || periodoSeleccionado === "3"; // 2=SEMESTRAL, 3=ANUAL
-  const isTrimestreDisabled = periodoSeleccionado === "3"; // ANUAL
+    periodoSeleccionado === "SEMESTRAL" || periodoSeleccionado === "ANUAL";
+  const isTrimestreDisabled = periodoSeleccionado === "ANUAL";
 
   // Efecto para seleccionar automáticamente los trimestres en modo ANUAL o limpiar si corresponde
   useEffect(() => {
-    if (periodoSeleccionado === "3" && trimestres.length > 0) {
-      // Selecciona todos los trimestres
+    if (periodoSeleccionado === "ANUAL" && trimestres.length > 0) {
       const allIds = trimestres.map((t) => t.id);
       if (JSON.stringify(formik.values.trimestre_id) !== JSON.stringify(allIds)) {
         formik.setFieldValue("trimestre_id", allIds);
       }
-    } else if (periodoSeleccionado === "2" && trimestres.length > 0) {
-      // Si cambia a semestral, limpia la selección si tiene más de 2 (probablemente vino de ANUAL)
+    } else if (periodoSeleccionado === "SEMESTRAL" && trimestres.length > 0) {
       if (
         Array.isArray(formik.values.trimestre_id) &&
         formik.values.trimestre_id.length > 2
       ) {
         formik.setFieldValue("trimestre_id", []);
       }
-    } else if (periodoSeleccionado === "1") {
-      // Si cambia a trimestral y es array, limpiarlo para obligar a seleccionar uno válido
+    } else if (periodoSeleccionado === "TRIMESTRAL") {
       if (Array.isArray(formik.values.trimestre_id)) {
         formik.setFieldValue("trimestre_id", "");
       }
     }
   }, [periodoSeleccionado, trimestres]);
 
-  // Inicializar el hook de mayúsculas
   const { handleUpperCaseChange } = useUpperCase(formik);
 
   return (
@@ -271,6 +280,46 @@ export default function EditUnidadCurricularModal({
       loading={loading || formik.isSubmitting}
       className="max-w-2xl"
     >
+      {/* Select condicional para PNF: Solo si pnfId no existe */}
+      {!pnfId && (
+        <div className="md:col-span-12 space-y-1 flex flex-col">
+          <Label htmlFor="pnf_id">PNF</Label>
+          <SelectSearch
+            name="pnf_id"
+            options={pnfs}
+            formik={formik}
+            isMulti={false}
+            labelKey="nombre"
+            valueKey="id"
+            placeholder="Seleccione el PNF para esta Unidad Curricular"
+          />
+          {formik.touched.pnf_id && formik.errors.pnf_id && (
+            <p className="text-xs text-red-500 font-medium">
+              {formik.errors.pnf_id}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Código */}
+      <div className="md:col-span-12 space-y-1 flex flex-col">
+        <Label htmlFor="codigo">Código</Label>
+        <ModernInput
+          id="codigo"
+          name="codigo"
+          type="number"
+          placeholder="EJ: 12345"
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          value={formik.values.codigo}
+        />
+        {formik.errors.codigo && formik.touched.codigo && (
+          <p className="text-xs font-medium text-red-500">
+            {formik.errors.codigo}
+          </p>
+        )}
+      </div>
+
       {/* Nombre */}
       <div className="md:col-span-12 space-y-1 flex flex-col">
         <Label htmlFor="nombre">Nombre</Label>
@@ -315,9 +364,9 @@ export default function EditUnidadCurricularModal({
         <SelectSearch
           name="periodo"
           options={[
-            { id: "1", nombre: "TRIMESTRAL" },
-            { id: "2", nombre: "SEMESTRAL" },
-            { id: "3", nombre: "ANUAL" },
+            { id: "TRIMESTRAL", nombre: "TRIMESTRAL" },
+            { id: "SEMESTRAL", nombre: "SEMESTRAL" },
+            { id: "ANUAL", nombre: "ANUAL" },
           ]}
           formik={formik}
           placeholder="Seleccione un periodo"
@@ -401,7 +450,7 @@ export default function EditUnidadCurricularModal({
         )}
       </div>
 
-      {/* Horas Académicas */}
+      {/* Horas Prácticas */}
       <div className="md:col-span-3 space-y-1 flex flex-col">
         <Label htmlFor="hora_practica">Horas Prácticas</Label>
         <ModernInput
@@ -420,7 +469,7 @@ export default function EditUnidadCurricularModal({
         )}
       </div>
 
-      {/* Horas Tota estimadas */}
+      {/* Horas Totales estimadas */}
       <div className="md:col-span-3 space-y-1 flex flex-col">
         <Label htmlFor="hora_total_est">Horas Totales</Label>
         <ModernInput

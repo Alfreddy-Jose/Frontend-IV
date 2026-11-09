@@ -5,6 +5,7 @@ import { getUserData } from "@/services/authService";
 import { getActivosLapsos } from "@/services/lapsoService";
 
 const isAuthPage = () => ["/login", "/"].includes(window.location.pathname);
+
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -13,43 +14,17 @@ export function AuthProvider({ children }) {
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
+  const [pnf, setPnf] = useState(() => {
+    const storedPnf = localStorage.getItem("pnf");
+    return storedPnf || "";
+  });
 
-  // Estado para el lapso académico
   const [lapsoActual, setLapsoActual] = useState(() => {
     const saved = localStorage.getItem("lapsoActual");
     return saved ? JSON.parse(saved) : null;
   });
 
   const [lapsos, setLapsos] = useState([]);
-
-  // Función para cargar los lapsos disponibles
-  const fetchLapsos = async () => {
-    try {
-      const response = await getActivosLapsos();
-      // getActivosLapsos ya retorna response.data de Axios. 
-      // Si el backend devuelve un array directo, response será el array.
-      // Si el backend devuelve { data: [...] }, response.data será el array.
-      const lapsosArray = Array.isArray(response) ? response : (response.data || []);
-      setLapsos(lapsosArray);
-      if (!lapsoActual && lapsosArray.length > 0) {
-        setLapsoActual(lapsosArray[0]);
-      }
-    } catch (err) {
-      console.error("Error al obtener los lapsos académicos:", err);
-    }
-  };
-  const refreshLapsos = async () => {
-    try {
-      const response = await getActivosLapsos();
-      const lapsosArray = Array.isArray(response) ? response : (response.data || []);
-      setLapsos(lapsosArray);
-      
-    } catch (err) {
-      console.error("Error al obtener los lapsos académicos:", err);
-    }
-  };
-
-
   const [permissions, setPermissions] = useState(() => {
     const storedPermissions = localStorage.getItem("permissions");
     try {
@@ -59,7 +34,19 @@ export function AuthProvider({ children }) {
     }
   });
 
-  // Nueva función para exponer setUser de forma controlada
+  const fetchLapsos = async () => {
+    try {
+      const response = await getActivosLapsos();
+      const lapsosArray = Array.isArray(response) ? response : (response.data || []);
+      setLapsos(lapsosArray);
+      if (!lapsoActual && lapsosArray.length > 0) {
+        setLapsoActual(lapsosArray[0]);
+      }
+    } catch (err) {
+      console.error("Error al obtener los lapsos académicos:", err);
+    }
+  };
+
   const updateUser = (newUser) => {
     setUser(newUser);
     localStorage.setItem("user", JSON.stringify(newUser));
@@ -69,11 +56,16 @@ export function AuthProvider({ children }) {
     if (!isAuthPage()) {
       const fetchUser = async () => {
         try {
-          const response = await getUserData(); 
-          const userData = response.data.user; 
-        setUser(userData);
-        await fetchLapsos();
-        // localStorage.setItem("user", JSON.stringify(userData));
+          const response = await getUserData();
+          const userData = response.data.user;
+          setUser(userData);
+          
+          if (response.data.pnf) {
+            setPnf(response.data.pnf);
+            localStorage.setItem("pnf", response.data.pnf);
+          }
+
+          await fetchLapsos();
         } catch (err) {
           console.error("Error al obtener los datos del usuario:", err);
         }
@@ -81,43 +73,42 @@ export function AuthProvider({ children }) {
       if (!user) {
         fetchUser();
       } else {
-        // Si ya hay usuario pero no lapsos, cargarlos
         if (lapsos?.length === 0) {
           fetchLapsos();
         }
       }
     }
-  }, [lapsoActual,user]);
+  }, [user]);
 
   useEffect(() => {
     if (lapsoActual) {
       localStorage.setItem("lapsoActual", JSON.stringify(lapsoActual));
-      // Configurar el lapso en los headers de las peticiones API
-      Api.defaults.headers.common["X-Lapso-Id"] = lapsoActual.id;
+    } else {
+      localStorage.removeItem("lapsoActual");
     }
   }, [lapsoActual]);
 
+  // AL INICIAR SESIÓN: No guardamos "token" en localStorage
   const signIn = (userData) => {
     setUser(userData.user);
     setPermissions(userData.permissions || []);
-    // Almcenando datos del usuario en el localStorage
-    localStorage.setItem("user", JSON.stringify(userData.user));
-    // Almcenando token del usuario en el localStorage
-    localStorage.setItem("token", userData.token);
-    localStorage.setItem("permissions", JSON.stringify(userData.permissions || []));
+    setPnf(userData.pnf || "");
 
-    // Configurar el token en las cabeceras de las peticiones API
-    Api.defaults.headers.common["Authorization"] = `Bearer ${userData.token}`;
-    // Cargar lapsos después de iniciar sesión
+    localStorage.setItem("user", JSON.stringify(userData.user));
+    localStorage.setItem("permissions", JSON.stringify(userData.permissions || []));
+    localStorage.setItem("pnf", userData.pnf || "");
+
     fetchLapsos();
   };
 
+  // AL CERRAR SESIÓN: Limpiamos los datos del usuario de la UI
   const signOut = () => {
     setUser(null);
     setPermissions([]);
+    setPnf("");
     localStorage.removeItem("user");
-    localStorage.removeItem("token");
     localStorage.removeItem("permissions");
+    localStorage.removeItem("pnf");
   };
 
   return (
@@ -128,9 +119,11 @@ export function AuthProvider({ children }) {
         lapsoActual,
         setLapsoActual,
         lapsos,
+        pnf,
+        setPnf,
         signIn,
         signOut,
-        updateUser, // Exponer updateUser
+        updateUser,
       }}
     >
       {children}

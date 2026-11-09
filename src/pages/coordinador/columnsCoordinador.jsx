@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Trash2 } from 'lucide-react';
 import { Guard } from '@/components/shared/Guard';
 
 /**
@@ -51,9 +51,13 @@ export const columnsCoordinador = (onDelete) => [
     },
   },
 
-  // 3. COLUMNA COORDINADOR (Nombre + Apellido)
+  // 3. COLUMNA COORDINADOR (Con accessorFn para unir nombre y apellido para el filtro)
   {
     id: 'nombre',
+    accessorFn: (row) => {
+      const persona = row.docente?.persona;
+      return persona ? `${persona.nombre || ""} ${persona.apellido || ""}`.trim() : "";
+    },
     header: 'Coordinador',
     cell: ({ row }) => {
       const persona = row.original.docente?.persona;
@@ -71,7 +75,7 @@ export const columnsCoordinador = (onDelete) => [
     cell: ({ row }) => {
       const pnfNombre = row.original.docente?.pnf?.nombre;
       return (
-        <div className="font-medium text-xs max-w-[350px] truncate" title={pnfNombre}>
+        <div className="font-medium text-xs max-w-[350px] truncate uppercase" title={pnfNombre}>
           {pnfNombre || 'N/A'}
         </div>
       );
@@ -113,6 +117,7 @@ export const columnsCoordinador = (onDelete) => [
                   onSelect={() => onDelete(coordinador)}
                   className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
                 >
+                  <Trash2 className="h-4 w-4 text-red-700 dark:text-red-300" />
                   Eliminar
                 </DropdownMenuItem>
               </Guard>

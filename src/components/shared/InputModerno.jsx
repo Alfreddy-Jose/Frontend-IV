@@ -14,7 +14,8 @@ const ModernInput = React.forwardRef(({ className, type, ...props }, ref) => {
 
         <input
           type={type}
-          className="peer w-full bg-transparent pl-4 pr-4 py-1.5 md:py-2 text-xs md:text-sm outline-none border-none placeholder:text-slate-400 dark:placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
+          autoComplete="off"
+          className="peer w-full bg-transparent pl-4 pr-4 py-1.5 md:py-2 text-xs md:text-sm outline-none border-none placeholder:text-slate-400 dark:placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           ref={ref}
           {...props}
         />

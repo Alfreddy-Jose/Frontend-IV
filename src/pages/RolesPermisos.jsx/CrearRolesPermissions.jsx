@@ -30,7 +30,13 @@ const RolesPermissions = () => {
       const roles = await getAllRolesPermisos();
       setRolesList(roles);
       const grouped = roles[0]?.groupedPermissions || {};
-      const formattedData = Object.keys(grouped).map((key) => ({
+      // 1. Definimos los módulos que queremos ocultar (en minúsculas para asegurar coincidencia)
+      const modulosExcluidos = ["aula", "laboratorio", "turno", "horario", "horario_docente"];
+      const formattedData = Object.keys(grouped)
+        // 2. Filtramos las claves del objeto agrupado
+        .filter((key) => !modulosExcluidos.includes(key.toLowerCase()))
+        // 3. Mapeamos el resto de claves
+        .map((key) => ({
         category: key.toUpperCase(),
         items: grouped[key].map((p) => ({
           id: p.full_name,

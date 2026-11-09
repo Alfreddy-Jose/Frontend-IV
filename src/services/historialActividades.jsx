@@ -9,11 +9,3 @@ export const getHistorialActividades = async () => {
     }
 };
 
-export const createHistorialActividad = async (actividadData) => {
-    try {
-        const response = await Api.post("/historial_actividades", actividadData);
-        return response;
-    } catch (error) {
-        console.error("Error al crear la actividad:", error);
-    }
-};

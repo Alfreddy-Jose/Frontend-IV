@@ -93,9 +93,9 @@ export default function SettingsDrawer({
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 cursor-pointer shadow-sm">
+        <Button variant="outline" size="sm" className="gap-2 cursor-pointer shadow-sm" title="Configuración de Entregables">
           <Settings className="size-4 animate-spin-hover" />
-          <span>Configuración de Entregables</span>
+          <span className="hidden sm:inline">Configuración de Entregables</span>
         </Button>
       </SheetTrigger>
 
@@ -131,7 +131,10 @@ export default function SettingsDrawer({
                         {lapsoActual.nombre_lapso}
                       </span>
                       <span className="text-[10px] text-muted-foreground">
-                        {lapsoActual.fecha_inicio} — {lapsoActual.fecha_fin} · {lapsoActual.tipolapso?.nombre}
+                        {new Date(lapsoActual.fecha_inicio).toLocaleDateString("es-VE", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })}
+                        {" — "}
+                        {new Date(lapsoActual.fecha_fin).toLocaleDateString("es-VE", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" })}
+                        {" · "}{lapsoActual.tipolapso?.nombre}
                       </span>
                     </div>
                   </div>

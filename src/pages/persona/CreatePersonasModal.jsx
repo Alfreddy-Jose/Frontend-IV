@@ -10,11 +10,30 @@ import { useFormik } from 'formik';
 import { PlusIcon } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import * as Yup from "yup";
+import { getSeccionesByPnf } from '@/services/personaService';
+import { useAuth } from '@/context/AuthContext';
 
 export default function CreatePersonasModal({ fetchPersona, estados, loadMunicipios }) {
   const [openModal, setOpenModal] = useState(false);
   const [municipios, setMunicipios] = useState([]);
   const [loadingMunicipios, setLoadingMunicipios] = useState(false);
+  const { user, pnf } = useAuth();
+  const [secciones, setSecciones] = useState([]);
+  const [loadingSecciones, setLoadingSecciones] = useState(false);
+
+  const cargarSecciones = useCallback(async () => {
+    setLoadingSecciones(true);
+    try {
+      // Si es coordinador y tiene pnf, pasa el id del pnf; de lo contrario pasa null
+      const data = await getSeccionesByPnf(pnf ? pnf : null);
+      setSecciones(data);      
+    } catch (error) {
+      console.error("Error al cargar Secciones:", error);
+      setSecciones([]);
+    } finally {
+      setLoadingSecciones(false);
+    }
+  }, [user, pnf]);
 
   const cargarMunicipios = useCallback(async (estadoId) => {
     if (!estadoId) {
@@ -23,7 +42,6 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
     }
 
     if (typeof loadMunicipios !== "function") {
-      console.error("loadMunicipios no está disponible");
       setMunicipios([]);
       return;
     }
@@ -64,6 +82,11 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
         email: Yup.string().email("Correo no válido"),
         //.required("Este campo es obligatorio"),
         tipo_persona: Yup.string().required("Este campo es obligatorio"), // Campo requerido
+        seccion_id: Yup.string().when("tipo_persona", {
+          is: "ESTUDIANTE",
+          then: (schema) => schema.required("Debes seleccionar una sección para el estudiante"),
+          otherwise: (schema) => schema.nullable(),
+        }),
         grado_inst: Yup.string().required("Este campo es obligatorio"), // Campo requerido
         estado_id: Yup.string().required("Este campo es obligatorio"),
         municipio_id: Yup.string().required("Este campo es obligatorio"),
@@ -82,6 +105,7 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
       telefono: "",
       email: "",
       tipo_persona: "",
+      seccion_id: "",
       municipio_id: "",
       estado_id: "",
       grado_inst: "",
@@ -140,6 +164,18 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
     }
   }, [values.estado_id, cargarMunicipios, setFieldValue]);
 
+  // Efecto para cargar secciones cuando tipo_persona es ESTUDIANTE
+  useEffect(() => {
+    if (openModal) {
+      if (values.tipo_persona === "ESTUDIANTE") {
+        cargarSecciones();
+      } else {
+        setFieldValue("seccion_id", "");
+        setSecciones([]);
+      }
+    }
+  }, [values.tipo_persona, openModal, setFieldValue, cargarSecciones]);
+
   // Inicializar el hook de mayúsculas
   const { handleUpperCaseChange } = useUpperCase(formik);
 
@@ -175,12 +211,12 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
 
       {/* Input Nombre */}
       <div className="md:col-span-4 space-y-1 flex flex-col">
-        <Label htmlFor="nombre">Nombre</Label>
+        <Label htmlFor="nombre">Nombres</Label>
         <ModernInput
           id="nombre"
           name="nombre"
           type="text"
-          placeholder="EJ: MIGUEL"
+          placeholder="EJ: MIGUEL ANTONIO"
           onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.nombre}
@@ -194,12 +230,12 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
 
       {/* Input Apellido */}
       <div className="md:col-span-5 space-y-1 flex flex-col">
-        <Label htmlFor="apellido">Apellido</Label>
+        <Label htmlFor="apellido">Apellidos</Label>
         <ModernInput
           id="apellido"
           name="apellido"
           type="text"
-          placeholder="EJ: PÉREZ"
+          placeholder="EJ: PÉREZ GONZÁLEZ"
           onChange={handleUpperCaseChange}
           onBlur={formik.handleBlur}
           value={formik.values.apellido}
@@ -266,6 +302,32 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
           <p className="text-xs text-red-500 font-medium">{formik.errors.tipo_persona}</p>
         )}
       </div>
+
+      {/* Select Sección condicional para Estudiante */}
+      {formik.values.tipo_persona === "ESTUDIANTE" && (
+        <div className="md:col-span-6 space-y-1 flex flex-col">
+          <Label htmlFor="seccion_id">Sección</Label>
+          <SelectSearch
+            placeholder={
+              loadingSecciones
+                ? "Cargando secciones..."
+                : secciones?.length === 0
+                  ? "No hay secciones disponibles"
+                  : "Seleccione una sección"
+            }
+            name="seccion_id"
+            options={secciones}
+            labelKey="nombre"
+            valueKey="id"
+            value={formik.values.seccion_id}
+            formik={formik}
+            disabled={loadingSecciones || secciones?.length === 0}
+          />
+          {formik.touched.seccion_id && formik.errors.seccion_id && (
+            <p className="text-xs text-red-500 font-medium">{formik.errors.seccion_id}</p>
+          )}
+        </div>
+      )}
 
       {/* Select para grado de instruccion */}
       <div className="md:col-span-6 space-y-1 flex flex-col">

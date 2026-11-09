@@ -1,4 +1,4 @@
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Trash2, SquarePen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,28 +15,6 @@ import { Guard } from "@/components/shared/Guard";
 
 // Define las columnas para la DataTable
 export const columns = (onEdit, onDelete) => [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: "nro_sede",
     header: "Número de Sede",
@@ -95,13 +73,18 @@ export const columns = (onEdit, onDelete) => [
               <DropdownMenuLabel>Acciones</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <Guard requiredPermissions="sede.editar">
-                <DropdownMenuItem onClick={() => onEdit(sede)} className="cursor-pointer">Editar</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onEdit(sede)}
+                 className="cursor-pointer">
+                  <SquarePen className="h-4 w-4 text-blue-700 dark:text-blue-400" />
+                  Editar
+                  </DropdownMenuItem>
               </Guard>
               <Guard requiredPermissions="sede.eliminar">
                 <DropdownMenuItem
                   onSelect={() => onDelete(sede)} // Evita que el menú se cierre antes que el modal
                   className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
                 >
+                  <Trash2 className="h-4 w-4 text-red-700 dark:text-red-300" />
                   Eliminar
                 </DropdownMenuItem>
               </Guard>

@@ -29,7 +29,23 @@ export const deleteLapso = async (id) => {
   return response.data;
 }
 
-export const getTipoLapso = async () => {
-  const response = await api.get('/get_tipoLapsos');
+export const getDataSelect = async () => {
+  const response = await api.get('/getDataSelect');
   return response.data;
 }
+
+/**
+ * ACCIÓN MANUAL: Fuerza el inicio anticipado de un lapso en planificación
+ */
+export const forzarInicioLapso = async (lapsoId) => {
+  const response = await api.post(`/lapso/${lapsoId}/forzar-inicio`);
+  return response.data;
+};
+
+/**
+ * ACCIÓN MANUAL: Clausura anticipadamente un Lapso activo
+ */
+export const forzarCierreLapso = async (lapsoId) => {
+  const response = await api.post(`/lapso/${lapsoId}/forzar-cierre`);
+  return response.data;
+};

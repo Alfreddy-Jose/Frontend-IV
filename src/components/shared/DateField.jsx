@@ -23,6 +23,7 @@ function DateField({
   min, // Recibe la fecha de inicio
   placeholder = "Seleccione una fecha",
   className,
+  disabled,
   ...props
 }) {
   const selected = value ? parseISO(value) : undefined;
@@ -52,11 +53,13 @@ function DateField({
           */}
           <Button
             variant="outline"
+            disabled={disabled}
             className={cn(
               "peer w-full h-auto justify-start text-left font-normal rounded-xl transition-all shadow-sm border overflow-hidden p-0",
               "border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/60",
               "hover:bg-white dark:hover:bg-slate-950/40 focus:bg-white dark:focus:bg-slate-950/40 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0",
-              touched && error && "border-red-500 dark:border-red-500"
+              touched && error && "border-red-500 dark:border-red-500",
+              disabled && "bg-slate-200/50 dark:bg-slate-800/50 cursor-not-allowed pointer-events-none"
             )}
           >
             {/* Contenedor Interno: Replica exactamente las mismas proporciones, paddings y comportamiento del <input> de InputModerno 

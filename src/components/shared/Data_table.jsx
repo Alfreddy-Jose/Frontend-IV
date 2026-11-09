@@ -17,7 +17,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Search,
-  Trash2,
 } from "lucide-react";
 
 import {
@@ -42,9 +41,6 @@ import {
 export function DataTable({ columns, data, filterColumn }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
-  const [rowSelection, setRowSelection] = React.useState({});
-
-  const hasRowSelection = Object.keys(rowSelection).length > 0;
 
   const table = useReactTable({
     data,
@@ -55,11 +51,9 @@ export function DataTable({ columns, data, filterColumn }) {
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
-    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
-      rowSelection,
     },
   });
 
@@ -82,20 +76,6 @@ export function DataTable({ columns, data, filterColumn }) {
         )}
 
         <div className="flex items-center gap-2">
-          {hasRowSelection && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => {
-                const selectedRowIds = table
-                  .getSelectedRowModel()
-                  .rows.map((row) => row.original.id);
-                console.log("Eliminando:", selectedRowIds);
-              }}
-            >
-              <Trash2 />  Eliminar
-            </Button>
-          )}
         </div>
       </div>
 
@@ -134,11 +114,9 @@ export function DataTable({ columns, data, filterColumn }) {
           </TableBody>
         </Table>
 
-        {/* --- NUEVOS CONTROLES DE PAGINACIÓN Y SELECCIÓN --- */}
+        {/* --- NUEVOS CONTROLES DE PAGINACIÓN --- */}
         <div className="flex flex-col gap-4 px-4 py-4 border-t border-gray-100 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} de{" "}
-            {table.getFilteredRowModel().rows.length} filas seleccionadas.
           </div>
 
           <div className="flex flex-col items-center gap-4 sm:flex-row lg:gap-8">

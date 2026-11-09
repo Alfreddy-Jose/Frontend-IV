@@ -17,6 +17,13 @@ import {
   BookText,
   UserRoundPen,
   UserLock,
+  TrendingUp,
+  CalendarDays,
+  UserCheck,
+  ChartNoAxesCombined,
+  History,
+  ClipboardList,
+  BarChart3,
 } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 import { useHasPermission } from "@/hooks/useHasPermission";
@@ -29,28 +36,39 @@ const userManagementLinks = [
 
 // Sub-enlaces agrupados bajo "Configuración Académica"
 const academicManagementLinks = [
+  { name: "Años Académicos", href: "/anos_academicos", icon: CalendarDays, requiredPermissions: "anoAcademico.ver" },
+  { name: "Lapso Académico", href: "/lapsos", icon: CalendarFold, requiredPermissions: "lapso.ver" },
   { name: "Sede", href: "/sedes", icon: MapPinHouse, requiredPermissions: "sede.ver" },
   { name: "Matrículas", href: "/matriculas", icon: FileText, requiredPermissions: "Tipo Matricula.ver" },
   { name: "Trayectos", href: "/trayectos", icon: Clock3, requiredPermissions: "trayecto.ver" },
   { name: "Unidad Curricular", href: "/unidad_curricular", icon: BookOpenTextIcon, requiredPermissions: "unidad Curricular.ver" },
   { name: "Pnf", href: "/pnfs", icon: BookText, requiredPermissions: "pnf.ver" },
+  { name: "Secciones", href: "/secciones", icon: ListIcon, requiredPermissions: "seccion.ver" },
+];
+
+// Sub-enlaces agrupados bajo "Estadística Estudiantil" 
+const studentStatisticsLinks = [
+  { name: "Proyecciones", href: "/proyecciones", icon: ChartNoAxesCombined, requiredPermissions: "proyeccion.ver" },
+  { name: "Estadistica Inscripción", href: "/estadistica_inscripcion", icon: BarChart3, /*requiredPermissions: "estadistica.ver" */},
 ];
 
 const dashboardLink = { name: "dashboard", href: "/", icon: LayoutGrid };
 
-const otherLinks = [
+const secondOtherLinks = [
+  { name: "Control de Entregas", href: "/gestion_entregas", icon: FileText, requiredPermissions: "entrega.ver" },
+  { name: "Censos Estudiantiles", href: "/censo_estudiantil", icon: UserCheck, requiredPermissions: "censo.ver" },
   { name: "Inventario", href: "/inventario", icon: ShelvingUnit, requiredPermissions: "inventario.ver" },
-  { name: "Lapso Académico", href: "/lapsos", icon: CalendarFold, requiredPermissions: "lapso.ver" },
-  { name: "Secciones", href: "/secciones", icon: ListIcon, requiredPermissions: "seccion.ver" },
-  { name: "Control de Entregas", href: "/gestion_entregas", icon: FileText, requiredPermissions: "lapso.ver" },
+  { name: "PER", href: "/per", icon: ClipboardList, /*requiredPermissions: "per.ver" */},
 ];
+
+const auditLink = { name: "Bitácora", href: "/bitacora", icon: History, requiredPermissions: "bitacora.ver" };
 
 const personsLinks = [
   { name: "Personas", href: "/personas", icon: UserRound, requiredPermissions: "persona.ver" },
   { name: "Docentes", href: "/docentes", icon: UserRound, requiredPermissions: "docente.ver" },
   { name: "Coordinadores", href: "/coordinadores", icon: UserRound, requiredPermissions: "coordinador.ver" },
   { name: "Voceros", href: "/voceros", icon: UserRound, requiredPermissions: "vocero.ver" },
-];
+]
 
 export default function Sidebar() {
   const location = useLocation();
@@ -68,8 +86,13 @@ export default function Sidebar() {
     [hasPermission]
   );
 
-  const visibleOtherLinks = useMemo(() =>
-    otherLinks.filter((link) => hasPermission(link.requiredPermissions)),
+  const visibleSecondOtherLinks = useMemo(() =>
+    secondOtherLinks.filter((link) => hasPermission(link.requiredPermissions)),
+    [hasPermission]
+  );
+
+  const visibleStudentStatsLinks = useMemo(() =>
+    studentStatisticsLinks.filter((link) => hasPermission(link.requiredPermissions)),
     [hasPermission]
   );
 
@@ -89,6 +112,12 @@ export default function Sidebar() {
     (l) => location.pathname === l.href
   );
   const [academicMgmtOpen, setAcademicMgmtOpen] = useState(isAcademicMgmtActive);
+
+  // Auto-abrir si alguna ruta de estadística estudiantil visible está activa
+  const isStudentStatsActive = visibleStudentStatsLinks.some(
+    (l) => location.pathname === l.href
+  );
+  const [studentStatsOpen, setStudentStatsOpen] = useState(isStudentStatsActive);
 
   // Auto-abrir si alguna ruta de personas visible está activa
   const isPersonsActive = visiblePersonsLinks.some(
@@ -190,8 +219,69 @@ export default function Sidebar() {
                   </li>
                 )}
 
-                {/* === Resto de enlaces === */}
-                {visibleOtherLinks.map((link) => {
+                {/* === Estadística Estudiantil (colapsable) === */}
+                {visibleStudentStatsLinks.length > 0 && (
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => setStudentStatsOpen((prev) => !prev)}
+                      className={`w-full text-sm capitalize font-medium rounded-xl flex items-center p-3 transition-all duration-200 group ${isStudentStatsActive
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-slate-800/60 dark:text-indigo-300 shadow-sm"
+                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800/30 dark:hover:text-slate-200"
+                        }`}
+                    >
+                      <TrendingUp
+                        className={`w-5 h-5 mr-3 transition-colors ${isStudentStatsActive
+                          ? "text-indigo-600 dark:text-indigo-300"
+                          : "text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300"
+                          }`}
+                      />
+                      <span>estadística estudiantil</span>
+                      <ChevronDown
+                        className={`w-4 h-4 ml-auto transition-transform duration-300 ${studentStatsOpen ? "rotate-180" : "rotate-0"
+                          } ${isStudentStatsActive
+                            ? "text-indigo-600 dark:text-indigo-300"
+                            : "text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300"
+                          }`}
+                      />
+                    </button>
+
+                    {/* Sub-opciones con animación */}
+                    <div
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${studentStatsOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                        }`}
+                    >
+                      <ul className="mt-1 ml-4 space-y-1 border-l border-gray-200 dark:border-slate-700 pl-2">
+                        {visibleStudentStatsLinks.map((link) => {
+                          const isActive = location.pathname === link.href;
+                          return (
+                            <li key={link.href}>
+                              <Link
+                                onClick={() => { if (isOpen) toggle(); }}
+                                to={link.href}
+                                className={`text-sm capitalize font-medium rounded-xl flex items-center p-3 transition-all duration-200 group ${isActive
+                                  ? "bg-indigo-50 text-indigo-700 dark:bg-slate-800/60 dark:text-indigo-300 shadow-sm"
+                                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800/30 dark:hover:text-slate-200"
+                                  }`}
+                              >
+                                <link.icon
+                                  className={`w-5 h-5 mr-3 transition-colors ${isActive
+                                    ? "text-indigo-600 dark:text-indigo-300"
+                                    : "text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300"
+                                    }`}
+                                />
+                                <span>{link.name}</span>
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  </li>
+                )}
+
+                {/* === Resto de enlaces (Parte 2: Control de Entregas, Censos Estudiantiles) === */}
+                {visibleSecondOtherLinks.map((link) => {
                   const isActive = location.pathname === link.href;
                   return (
                     <li key={link.href}>
@@ -305,7 +395,7 @@ export default function Sidebar() {
 
                     {/* Sub-opciones con animación */}
                     <div
-                      className={`overflow-hidden transition-all duration-300 ease-in-out ${academicMgmtOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
+                      className={`overflow-hidden transition-all duration-300 ease-in-out ${academicMgmtOpen ? "max-h-120 opacity-100" : "max-h-0 opacity-0"
                         }`}
                     >
                       <ul className="mt-1 ml-4 space-y-1 border-l border-gray-200 dark:border-slate-700 pl-2">
@@ -336,6 +426,26 @@ export default function Sidebar() {
                     </div>
                   </li>
                 )}
+
+                {/* === Bitácora de Auditoría === */}
+                <li>
+                  <Link
+                    onClick={() => { if (isOpen) toggle(); }}
+                    to={auditLink.href}
+                    className={`text-sm capitalize font-medium rounded-xl flex items-center p-3 transition-all duration-200 group ${location.pathname === auditLink.href
+                      ? "bg-indigo-50 text-indigo-700 dark:bg-slate-800/60 dark:text-indigo-300 shadow-sm"
+                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800/30 dark:hover:text-slate-200"
+                      }`}
+                  >
+                    <auditLink.icon
+                      className={`w-5 h-5 mr-3 transition-colors ${location.pathname === auditLink.href
+                        ? "text-indigo-600 dark:text-indigo-300"
+                        : "text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300"
+                        }`}
+                    />
+                    <span>{auditLink.name}</span>
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
