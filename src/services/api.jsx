@@ -3,7 +3,7 @@ import { notify } from "@/components/shared/Notify";
 
 // Configuración básica de Axios
 export const Api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL + '/api',
   timeout: 5000,
   headers: {
     Accept: "application/json",
