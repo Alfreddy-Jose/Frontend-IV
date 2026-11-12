@@ -49,3 +49,16 @@ export const forzarCierreLapso = async (lapsoId) => {
   const response = await api.post(`/lapso/${lapsoId}/forzar-cierre`);
   return response.data;
 };
+
+/**
+ * Descarga el reporte PDF de lapsos académicos respetando los filtros enviados.
+ * @param {Object} params - Parámetros de filtro (ano_academico_id).
+ * @returns {Blob} Archivo binario PDF.
+ */
+export const exportarLapsosPdf = async (params = {}) => {
+  const response = await api.get('/lapsos/pdf', {
+    params,
+    responseType: 'blob',
+  });
+  return response.data;
+};

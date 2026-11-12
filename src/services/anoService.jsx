@@ -55,3 +55,16 @@ export const forzarCierreAno = async (anoId) => {
   const response = await Api.post(`/panel/ano/${anoId}/forzar-cierre`);
   return response.data;
 };
+
+/**
+ * Descarga el reporte PDF del cronograma de años académicos.
+ * @param {Object} params - Parámetros de filtro (status).
+ * @returns {Blob} Archivo binario PDF.
+ */
+export const exportarAnosAcademicosPdf = async (params = {}) => {
+  const response = await Api.get('/anos_academicos/pdf', {
+    params,
+    responseType: 'blob',
+  });
+  return response.data;
+};

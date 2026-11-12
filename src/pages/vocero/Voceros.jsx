@@ -4,13 +4,14 @@ import { notify } from "@/components/shared/Notify";
 import {
   getAllVoceros,
   deleteVocero,
-  exportarVocerosExcel,
+  exportarVocerosPdf,
 } from "@/services/voceroService";
 import { getEstudiantes } from "@/services/censoService";
 import { getSeccionesByPnf } from "@/services/personaService";
 import { DataTable } from "@/components/shared/Data_table";
 import CreateVoceroModal from "./CreateVoceroModal";
-// import ShowVoceroModal from "./ShowVoceroModal";
+import GenericShowModal from "@/components/shared/GenericShowModal";
+import { voceroSections } from "./voceroSections";
 import BreadcrumbReusable from "@/components/shared/BreadcrumbReusable";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
 import { useAuth } from "@/context/AuthContext";
@@ -18,7 +19,7 @@ import SelectSearch from "@/components/shared/SelectSearch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import MetricCarousel from "@/components/shared/MetricCarousel";
-import { CalendarDays, Download, ChevronDown } from "lucide-react";
+import { CalendarDays, Download, ChevronDown, Megaphone } from "lucide-react";
 import { columnsVocero } from "./columnsVocero";
 import { SkeletonTableFilter } from "@/components/shared/SkeletonTableFilter";
 
@@ -38,7 +39,7 @@ export default function Voceros() {
   // Estados para modales de acción por fila
   const [selectedVoceroDetails, setSelectedVoceroDetails] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
-  const [descargandoExcel, setDescargandoExcel] = useState(false);
+  const [descargandoPdf, setDescargandoPdf] = useState(false);
 
   // Formik para el filtro por Sección
   const filterFormik = useFormik({
@@ -162,8 +163,8 @@ export default function Voceros() {
     { label: "Suplentes", value: "SUPLENTE", count: countSuplentes },
   ];
 
-  // Exportar reporte Excel respetando los filtros activos
-  const handleDescargarExcel = async () => {
+  // Exportar reporte PDF respetando los filtros activos
+  const handleDescargarPdf = async () => {
     if (!lapsoActual?.id) {
       notify.error(
         "Se requiere un lapso académico activo para generar el reporte.",
@@ -172,7 +173,7 @@ export default function Voceros() {
     }
 
     try {
-      setDescargandoExcel(true);
+      setDescargandoPdf(true);
 
       await notify.promise(
         (async () => {
@@ -189,7 +190,7 @@ export default function Voceros() {
             params.seccion_id = seccionId;
           }
 
-          const blobData = await exportarVocerosExcel(params);
+          const blobData = await exportarVocerosPdf(params);
           const url = window.URL.createObjectURL(new Blob([blobData]));
           const link = document.createElement("a");
           link.href = url;
@@ -209,23 +210,24 @@ export default function Voceros() {
           ).replace("-", "_");
           const pnfLimpio = user?.pnf?.abreviado ? user.pnf.abreviado : "";
 
-          const nombreArchivo = `VOCEROS_${seccionNombre}_${lapsoLimpio}_${pnfLimpio}.xlsx`;
+          const nombreArchivo = `VOCEROS_${seccionNombre}_${lapsoLimpio}_${pnfLimpio}.pdf`;
 
           link.setAttribute("download", nombreArchivo);
           document.body.appendChild(link);
           link.click();
           link.parentNode.removeChild(link);
+          window.URL.revokeObjectURL(url);
         })(),
         {
           loading: "Generando reporte de Voceros...",
-          success: "Reporte Excel descargado con éxito.",
-          error: "No se pudo procesar el archivo Excel.",
+          success: "Reporte PDF descargado con éxito.",
+          error: "No se pudo procesar el archivo PDF.",
         },
       );
     } catch (error) {
       console.error("Error al descargar reporte:", error);
     } finally {
-      setDescargandoExcel(false);
+      setDescargandoPdf(false);
     }
   };
 
@@ -256,17 +258,17 @@ export default function Voceros() {
           {/* Botón Descargar Reporte */}
           <Button
             variant="outline"
-            onClick={handleDescargarExcel}
+            onClick={handleDescargarPdf}
             className="flex items-center gap-2 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 dark:border-slate-800 dark:hover:bg-slate-800"
-            disabled={descargandoExcel}
+            disabled={descargandoPdf}
           >
-            {descargandoExcel ? (
+            {descargandoPdf ? (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
             ) : (
               <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             )}
             <span className="hidden sm:inline">
-              {descargandoExcel ? "Procesando..." : "Descargar Reporte"}
+              {descargandoPdf ? "Procesando..." : "Descargar Reporte"}
             </span>
           </Button>
 
@@ -343,6 +345,21 @@ export default function Voceros() {
         onClose={() => setDeletingId(null)}
         onSuccess={fetchVoceros}
         deleteFunction={deleteVocero}
+      />
+
+      {/* Modal para Ver Detalles del Vocero */}
+      <GenericShowModal
+        isOpen={!!selectedVoceroDetails}
+        onClose={() => setSelectedVoceroDetails(null)}
+        title="Ficha Detallada del Vocero"
+        description={
+          selectedVoceroDetails
+            ? `Estudiante: ${selectedVoceroDetails.estudiante?.persona?.nombre || ""} ${selectedVoceroDetails.estudiante?.persona?.apellido || ""} - C.I: ${selectedVoceroDetails.estudiante?.persona?.cedula_persona || ""}`
+            : ""
+        }
+        icon={Megaphone}
+        data={selectedVoceroDetails}
+        sections={voceroSections}
       />
     </div>
   );

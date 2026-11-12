@@ -24,3 +24,16 @@ export const getMatriculaById = async (matriculaId) => {
   const response = await Api.get(`/matricula/${matriculaId}`);
   return response.data;
 }
+
+/**
+ * Descarga el reporte PDF del catálogo de tipos de matrícula.
+ * @param {Object} params - Parámetros de filtro (nombre).
+ * @returns {Blob} Archivo binario PDF.
+ */
+export const exportarMatriculasPdf = async (params = {}) => {
+  const response = await Api.get('/matriculas/pdf', {
+    params,
+    responseType: 'blob',
+  });
+  return response.data;
+}

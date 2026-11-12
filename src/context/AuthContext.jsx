@@ -37,11 +37,25 @@ export function AuthProvider({ children }) {
   const fetchLapsos = async () => {
     try {
       const response = await getActivosLapsos();
-      const lapsosArray = Array.isArray(response) ? response : (response.data || []);
+      const lapsosArray = Array.isArray(response) ? response : response?.data || [];
       setLapsos(lapsosArray);
-      if (!lapsoActual && lapsosArray.length > 0) {
-        setLapsoActual(lapsosArray[0]);
-      }
+
+      // Sincronizar el lapso seleccionado con la lista vigente:
+      // - Si el lapso guardado ya no está activo (o fue eliminado), se toma el
+      //   primero en orden cronológico, el mismo criterio que
+      //   LapsoAcademico::actual() usa en el backend.
+      // - Si sigue vigente, se refrescan sus datos por si cambiaron.
+      setLapsoActual((prev) => {
+        if (lapsosArray.length === 0) return null;
+
+        const vigente = lapsosArray.find(
+          (lapso) => String(lapso.id) === String(prev?.id),
+        );
+
+        if (!vigente) return lapsosArray[0];
+
+        return JSON.stringify(vigente) === JSON.stringify(prev) ? prev : vigente;
+      });
     } catch (err) {
       console.error("Error al obtener los lapsos académicos:", err);
     }
@@ -106,9 +120,12 @@ export function AuthProvider({ children }) {
     setUser(null);
     setPermissions([]);
     setPnf("");
+    setLapsos([]);
+    setLapsoActual(null);
     localStorage.removeItem("user");
     localStorage.removeItem("permissions");
     localStorage.removeItem("pnf");
+    localStorage.removeItem("lapsoActual");
   };
 
   return (
@@ -119,6 +136,7 @@ export function AuthProvider({ children }) {
         lapsoActual,
         setLapsoActual,
         lapsos,
+        refreshLapsos: fetchLapsos,
         pnf,
         setPnf,
         signIn,

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { createDocumento, deleteDocumento } from "@/services/documentosControl";
 import { useAuth } from "@/context/AuthContext";
+import { Guard } from "@/components/shared/Guard";
 
 export default function SettingsDrawer({
   activeDeliverables,
@@ -92,12 +93,14 @@ export default function SettingsDrawer({
 
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 cursor-pointer shadow-sm" title="Configuración de Entregables">
-          <Settings className="size-4 animate-spin-hover" />
-          <span className="hidden sm:inline">Configuración de Entregables</span>
-        </Button>
-      </SheetTrigger>
+      <Guard requiredPermissions={["entrega.crear", "entrega.eliminar"]}>
+        <SheetTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-2 cursor-pointer shadow-sm" title="Configuración de Entregables">
+            <Settings className="size-4 animate-spin-hover" />
+            <span className="hidden sm:inline">Configuración de Entregables</span>
+          </Button>
+        </SheetTrigger>
+      </Guard>
 
       <SheetContent side="right" className="w-full sm:max-w-md border-l border-border bg-background shadow-2xl p-0 flex flex-col h-full">
         <SheetHeader className="p-6 border-b border-border bg-slate-50 dark:bg-slate-900/50">
@@ -170,16 +173,18 @@ export default function SettingsDrawer({
                     {deletingId === del.id ? (
                       <Loader2 className="size-4 animate-spin text-destructive" />
                     ) : (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => handleDelete(del.id, del.nombre)}
-                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
-                        title="Eliminar plantilla"
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
+                      <Guard requiredPermissions="entrega.eliminar">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => handleDelete(del.id, del.nombre)}
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                          title="Eliminar plantilla"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </Guard>
                     )}
                   </div>
                 </div>
@@ -188,6 +193,7 @@ export default function SettingsDrawer({
           </div>
 
           {/* Add New Deliverable form */}
+          <Guard requiredPermissions="entrega.crear">
           <form onSubmit={formik.handleSubmit} className="p-4 bg-slate-50 dark:bg-slate-900/30 border border-dashed border-border rounded-xl space-y-4">
             <h4 className="text-xs font-bold uppercase text-muted-foreground tracking-wider flex items-center gap-1.5">
               <Plus className="size-3.5 text-primary" />
@@ -252,6 +258,7 @@ export default function SettingsDrawer({
               )}
             </Button>
           </form>
+          </Guard>
         </div>
 
         {/* Drawer Footer */}

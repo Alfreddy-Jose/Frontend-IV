@@ -60,7 +60,7 @@ export const columnsPer = (handleViewDetails, onEdit, onDelete) => [
             const per = row.original;
 
             return (
-                <Guard requiredPermissions={["per.editar", "per.eliminar"]}>
+                <Guard requiredPermissions={["per.ver", "per.editar", "per.eliminar"]}>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -73,13 +73,15 @@ export const columnsPer = (handleViewDetails, onEdit, onDelete) => [
                             <DropdownMenuSeparator />
 
                             {/* opcion de ver detalles */}
-                            <DropdownMenuItem
-                                onClick={() => handleViewDetails(per)}
-                                className="cursor-pointer flex items-center gap-2 text-slate-700 dark:text-slate-300"
-                            >
-                                <Eye className="h-4 w-4 text-blue-700 dark:text-blue-400" />
-                                Ver Detalles
-                            </DropdownMenuItem>
+                            <Guard requiredPermissions="per.ver">
+                                <DropdownMenuItem
+                                    onClick={() => handleViewDetails(per)}
+                                    className="cursor-pointer flex items-center gap-2 text-slate-700 dark:text-slate-300"
+                                >
+                                    <Eye className="h-4 w-4 text-blue-700 dark:text-blue-400" />
+                                    Ver Detalles
+                                </DropdownMenuItem>
+                            </Guard>
 
                             {/* opcion de editar */}
                             <Guard requiredPermissions="per.editar">

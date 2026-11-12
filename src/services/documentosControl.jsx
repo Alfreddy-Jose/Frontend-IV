@@ -1,7 +1,7 @@
 import Api from "./api";
 
 const getAllDocumentos = async () => {
-  const response = await Api.get('/documentos');
+  const response = await Api.get('/tipos_documentos');
   return response.data;
 }
 

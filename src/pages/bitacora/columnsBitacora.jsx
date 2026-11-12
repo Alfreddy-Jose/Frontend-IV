@@ -10,35 +10,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { clasesBadgeAccion, etiquetaAccion } from "./accionesBitacora";
+import { formatIpAddress } from "./ipAddress";
 
 /**
  * Función que genera el badge dinámico según la acción de la bitácora
  */
 const renderAccionBadge = (accion) => {
-    const normalizado = accion?.toUpperCase();
+    const clases = clasesBadgeAccion(accion);
 
-    switch (normalizado) {
-        case "INSERTAR":
-            return (
-                <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 font-medium">
-                    Insertar
-                </Badge>
-            );
-        case "MODIFICAR":
-            return (
-                <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800 font-medium">
-                    Modificar
-                </Badge>
-            );
-        case "ELIMINAR":
-            return (
-                <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800 font-medium">
-                    Eliminar
-                </Badge>
-            );
-        default:
-            return <Badge variant="outline">{accion || "N/A"}</Badge>;
+    if (!clases) {
+        return <Badge variant="outline">{etiquetaAccion(accion)}</Badge>;
     }
+
+    return (
+        <Badge className={`${clases} hover:opacity-90 font-medium`}>
+            {etiquetaAccion(accion)}
+        </Badge>
+    );
 };
 
 export const columnsBitacora = (onViewDetails) => [
@@ -91,7 +80,7 @@ export const columnsBitacora = (onViewDetails) => [
         header: "IP Address",
         cell: ({ row }) => (
             <span className="text-xs text-slate-500 dark:text-slate-400">
-                {row.original.ip_address || "N/A"}
+                {formatIpAddress(row.original.ip_address)}
             </span>
         ),
     },

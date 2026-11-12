@@ -71,6 +71,9 @@ export default function Bitacora() {
         countInsertar,
         countModificar,
         countEliminar,
+        countInicioSesion,
+        countCierreSesion,
+        countIntentoFallido,
     } = useMemo(() => {
         const safeData = Array.isArray(data) ? data : [];
 
@@ -79,6 +82,9 @@ export default function Bitacora() {
             countInsertar: safeData.filter((item) => item?.accion === "INSERTAR").length,
             countModificar: safeData.filter((item) => item?.accion === "MODIFICAR").length,
             countEliminar: safeData.filter((item) => item?.accion === "ELIMINAR").length,
+            countInicioSesion: safeData.filter((item) => item?.accion === "INICIO_SESION").length,
+            countCierreSesion: safeData.filter((item) => item?.accion === "CIERRE_SESION").length,
+            countIntentoFallido: safeData.filter((item) => item?.accion === "INTENTO_FALLIDO").length,
         };
     }, [data]);
 
@@ -99,6 +105,9 @@ export default function Bitacora() {
         { label: "Insertar", value: "INSERTAR", count: countInsertar },
         { label: "Modificar", value: "MODIFICAR", count: countModificar },
         { label: "Eliminar", value: "ELIMINAR", count: countEliminar },
+        { label: "Inicio de Sesión", value: "INICIO_SESION", count: countInicioSesion },
+        { label: "Cierre de Sesión", value: "CIERRE_SESION", count: countCierreSesion },
+        { label: "Intentos Fallidos", value: "INTENTO_FALLIDO", count: countIntentoFallido },
     ];
 
     const handleViewDetails = (bitacora) => {
@@ -109,23 +118,6 @@ export default function Bitacora() {
         { label: "Home", href: "/" },
         { label: "Bitácora", href: "/bitacora" },
     ];
-
-    const actionOptions = [
-        { id: "INSERTAR", nombre: "Insertar" },
-        { id: "MODIFICAR", nombre: "Modificar" },
-        { id: "ELIMINAR", nombre: "Eliminar" },
-    ];
-
-    const hasFilters = filterFormik.values.search || filterFormik.values.accion;
-
-    const handleClearFilters = () => {
-        filterFormik.resetForm();
-        setFiltroRapido("todos"); // Restablecer también el filtro rápido
-        filterFormik.setValues({ search: "", accion: "" });
-        setTimeout(() => {
-            filterFormik.handleSubmit();
-        }, 0);
-    };
 
     if (loading) {
         return <SkeletonTableFilter />;

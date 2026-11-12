@@ -196,16 +196,15 @@ export default function Per() {
           </Button>
 
           {/* Botón Abrir Modal de Creación */}
-          {/* <Guard requiredPermissions="per.crear"> */}
-          <div className="flex justify-end">
-            <CreatePerModal
-              fetData={fetchData}
-              Docentes={docentes}
-              Estudiantes={estudiantes}
-            />
-          </div>
-
-          {/* </Guard> */}
+          <Guard requiredPermissions="per.crear">
+            <div className="flex justify-end">
+              <CreatePerModal
+                fetData={fetchData}
+                Docentes={docentes}
+                Estudiantes={estudiantes}
+              />
+            </div>
+          </Guard>
         </div>
       </div>
 

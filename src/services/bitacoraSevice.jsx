@@ -10,7 +10,7 @@ export const bitacoraService = {
    * @param {Object} params - Parámetros de búsqueda y paginación.
    * @param {number} [params.page=1] - Número de página.
    * @param {string} [params.search=''] - Filtro de búsqueda (usuario, módulo, etc.).
-   * @param {string} [params.accion=''] - Filtro por tipo de acción (INSERTAR, MODIFICAR, ELIMINAR).
+   * @param {string} [params.accion=''] - Filtro por tipo de acción (INSERTAR, MODIFICAR, ELIMINAR, INICIO_SESION, CIERRE_SESION, INTENTO_FALLIDO).
    * @returns {Promise<Object>} Datos paginados de la bitácora.
    */
   getAll: async (params = {}) => {

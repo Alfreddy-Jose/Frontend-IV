@@ -47,7 +47,9 @@ export const updateVocero = async (id, voceroData) => {
 // =========================================================================
 
 /**
- * Genera y descarga un archivo Excel con los datos de voceros filtrados.
+ * LEGADO: exportación a Excel de voceros. Se conserva por compatibilidad, pero
+ * el backend no expone la ruta `/voceros/exportar-excel`; el reporte oficial
+ * ahora se descarga en PDF con `exportarVocerosPdf`.
  * @param {Object} params - Parámetros de filtro (lapso_id, seccion_id, tipo_vocero).
  * @returns {Blob} Archivo binario Excel.
  */
@@ -59,6 +61,19 @@ export const exportarVocerosExcel = async (params = {}) => {
 
   const response = await Api.get(url, {
     responseType: "blob", // Requerido para recibir el binario del Excel
+  });
+  return response.data;
+};
+
+/**
+ * Genera y descarga un archivo PDF con los datos de voceros filtrados.
+ * @param {Object} params - Parámetros de filtro (lapso_id, seccion_id, tipo_vocero).
+ * @returns {Blob} Archivo binario PDF.
+ */
+export const exportarVocerosPdf = async (params = {}) => {
+  const response = await Api.get("/voceros/pdf", {
+    params,
+    responseType: "blob",
   });
   return response.data;
 };

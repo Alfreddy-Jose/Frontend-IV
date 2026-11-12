@@ -94,7 +94,7 @@ export const columnsCenso = (handleViewDetails, onEdit, onDelete) => [
       }
 
       return (
-        <Guard requiredPermissions={["censo.editar", "censo.eliminar"]}>
+        <Guard requiredPermissions={["censo.ver", "censo.editar", "censo.eliminar"]}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
@@ -107,13 +107,15 @@ export const columnsCenso = (handleViewDetails, onEdit, onDelete) => [
               <DropdownMenuSeparator />
 
               {/* opcion de ver detalles */}
-              <DropdownMenuItem
-                onClick={() => handleViewDetails(censo)}
-                className="cursor-pointer flex items-center gap-2 text-slate-700 dark:text-slate-300"
-              >
-                <Eye className="h-4 w-4 text-blue-700 dark:text-blue-400" />
-                Ver Detalles
-              </DropdownMenuItem>
+              <Guard requiredPermissions="censo.ver">
+                <DropdownMenuItem
+                  onClick={() => handleViewDetails(censo)}
+                  className="cursor-pointer flex items-center gap-2 text-slate-700 dark:text-slate-300"
+                >
+                  <Eye className="h-4 w-4 text-blue-700 dark:text-blue-400" />
+                  Ver Detalles
+                </DropdownMenuItem>
+              </Guard>
 
               {/* opcion de editar */}
               <Guard requiredPermissions="censo.editar">

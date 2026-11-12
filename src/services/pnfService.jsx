@@ -24,3 +24,16 @@ export const getPnfById = async (pnfId) => {
   const response = await Api.get(`/pnf/${pnfId}`);
   return response.data;
 }
+
+/**
+ * Descarga el reporte PDF del catálogo de PNF.
+ * @param {Object} params - Parámetros de filtro.
+ * @returns {Blob} Archivo binario PDF.
+ */
+export const exportarPnfsPdf = async (params = {}) => {
+  const response = await Api.get('/pnfs/pdf', {
+    params,
+    responseType: 'blob',
+  });
+  return response.data;
+}

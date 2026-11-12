@@ -18,6 +18,7 @@ import ActividadTimeline from "./ActividadTimeline";
 import EstadisticasTab from "./EstadisticasTab";
 import ReportesTab from "./ReportesTab";
 import SkeletonGestionEntregas from "./SkeletonGestionEntregas";
+import { useHasPermission } from "@/hooks/useHasPermission";
 
 export default function GestionEntregasPage() {
   // Breadcrumbs definition
@@ -28,6 +29,8 @@ export default function GestionEntregasPage() {
 
   // States
   const { user, lapsoActual } = useAuth();
+  const hasPermission = useHasPermission();
+  const canToggleEntrega = hasPermission(["entrega.crear", "entrega.editar"]);
   const [documentos, setDocumentos] = useState([]);
   const [docentes, setDocentes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -332,6 +335,7 @@ export default function GestionEntregasPage() {
                 documentos={documentos}
                 onToggleEntrega={handleToggleEntrega}
                 loading={loading}
+                canEdit={canToggleEntrega}
               />
             </div>
 

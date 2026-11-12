@@ -27,6 +27,7 @@ import Inventario from "@/pages/inventario/InventarioList";
 import Bitacora from "@/pages/bitacora/Bitacora";
 import Per from "@/pages/per/Per";
 import EstadisticaInscripcion from "@/pages/estadisticaInscripcion/estadisticaInscripcion";
+import Documento from "@/pages/documento/documento";
 import { EditProfile } from "@/pages/usuario/EditProfile";
 
 export function AppRoutes() {
@@ -82,7 +83,7 @@ export function AppRoutes() {
 
       {/* Rutas para Proyecciones Académicas */}
       <Route path="/proyecciones" element={
-        <ProtectedRoute /* requiredPermission="proyeccion.ver" */>
+        <ProtectedRoute requiredPermission="proyeccion.ver">
           <Layout>
             <Proyecciones />
           </Layout>
@@ -136,7 +137,7 @@ export function AppRoutes() {
 
       {/* Rutas de Bitácora de Auditoría */}
       <Route path="/bitacora" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiredPermission="bitacora.ver">
           <Layout>
             <Bitacora />
           </Layout>
@@ -217,7 +218,7 @@ export function AppRoutes() {
 
       {/* Rutas para Control de Entregas de Documentos */}
       <Route path="/gestion_entregas" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiredPermission="entrega.ver">
           <Layout>
             <GestionEntregasPage />
           </Layout>
@@ -226,7 +227,7 @@ export function AppRoutes() {
 
       {/* Rutas para el censo estudiantil */}
       <Route path="/censo_estudiantil" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiredPermission="censo.ver">
           <Layout>
             <Censos />
           </Layout>
@@ -235,16 +236,25 @@ export function AppRoutes() {
 
       {/* Rutas para el Estadistica de inscripción */}
       <Route path="/estadistica_inscripcion" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiredPermission="estadistica.ver">
           <Layout>
             <EstadisticaInscripcion />
           </Layout>
         </ProtectedRoute>
       } />
 
+      {/* Rutas para Documentos por PNF */}
+      <Route path="/documentos" element={
+        <ProtectedRoute>
+          <Layout>
+            <Documento />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
       {/* Rutas para el PER */}
       <Route path="/per" element={
-        <ProtectedRoute>
+        <ProtectedRoute requiredPermission="per.ver">
           <Layout>
             <Per />
           </Layout>

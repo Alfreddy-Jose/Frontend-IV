@@ -44,3 +44,16 @@ export const getPnfs = async () => {
   const response = await api.get('/sede/getPnf');
   return response.data;
 }
+
+/**
+ * Descarga el reporte PDF del catálogo de sedes.
+ * @param {Object} params - Parámetros de filtro.
+ * @returns {Blob} Archivo binario PDF.
+ */
+export const exportarSedesPdf = async (params = {}) => {
+  const response = await api.get('/sedes/pdf', {
+    params,
+    responseType: 'blob',
+  });
+  return response.data;
+}

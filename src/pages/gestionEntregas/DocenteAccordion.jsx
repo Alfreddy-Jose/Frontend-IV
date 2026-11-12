@@ -9,7 +9,7 @@ import { useFormik } from "formik";
 import { ModernInput } from "@/components/shared/InputModerno";
 
 // ─── Deliverable Card Component (Extracted to manage state and prevent focus loss) ───
-const EntregableCard = ({ doc, entregado, observaciones, archivoUrl, onToggleEntrega, docenteId, seccionId, ucNombre, ucId, asignacionId }) => {
+const EntregableCard = ({ doc, entregado, observaciones, archivoUrl, onToggleEntrega, docenteId, seccionId, ucNombre, ucId, asignacionId, canEdit = true }) => {
   const [isObsOpen, setIsObsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [archivo, setArchivo] = useState(null);
@@ -65,8 +65,8 @@ const EntregableCard = ({ doc, entregado, observaciones, archivoUrl, onToggleEnt
   return (
     <div className="relative">
       <div
-        onClick={(e) => onToggleEntrega(docenteId, doc.id, seccionId, ucNombre, !entregado, null, !entregado ? "Marcó" : "Desmarcó", null, e, ucId, asignacionId)}
-        className="flex items-center justify-between p-3.5 bg-card border border-border/80 rounded-xl hover:border-slate-300 dark:hover:border-slate-700/80 transition-colors shadow-xs cursor-pointer select-none"
+        onClick={canEdit ? (e) => onToggleEntrega(docenteId, doc.id, seccionId, ucNombre, !entregado, null, !entregado ? "Marcó" : "Desmarcó", null, e, ucId, asignacionId) : undefined}
+        className={`flex items-center justify-between p-3.5 bg-card border border-border/80 rounded-xl hover:border-slate-300 dark:hover:border-slate-700/80 transition-colors shadow-xs select-none ${canEdit ? "cursor-pointer" : "cursor-default"}`}
       >
         <div className="flex items-center gap-3">
           <div 
@@ -107,7 +107,7 @@ const EntregableCard = ({ doc, entregado, observaciones, archivoUrl, onToggleEnt
 
         <div className="flex items-center gap-2">
           {/* Observation icon — only visible when entregado */}
-          {entregado && (
+          {entregado && canEdit && (
             <Popover open={isObsOpen} onOpenChange={setIsObsOpen}>
               <PopoverTrigger asChild>
                 <button
@@ -221,7 +221,8 @@ export default function DocenteAccordion({
   docentes,
   documentos,
   onToggleEntrega,
-  loading
+  loading,
+  canEdit = true
 }) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -426,6 +427,7 @@ export default function DocenteAccordion({
                             seccionId={null}
                             ucNombre={null}
                             onToggleEntrega={onToggleEntrega}
+                            canEdit={canEdit}
                           />
                         );
                       })}
@@ -478,6 +480,7 @@ export default function DocenteAccordion({
                               ucId={seccion.unidad_curricular_id || seccion.uc_id}
                               asignacionId={seccion.id || seccion.asignacion_id}
                               onToggleEntrega={onToggleEntrega}
+                              canEdit={canEdit}
                             />
                           );
                         })}

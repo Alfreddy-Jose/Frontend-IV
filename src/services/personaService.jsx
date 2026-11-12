@@ -32,4 +32,17 @@ export const getSeccionesByPnf = async (pnfId = null) => {
   return response.data;
 }
 
+/**
+ * Descarga el reporte PDF de personas respetando los filtros enviados.
+ * @param {Object} params - Parámetros de filtro (tipo_persona, grado_inst, pnf).
+ * @returns {Blob} Archivo binario PDF.
+ */
+export const exportarPersonasPdf = async (params = {}) => {
+  const response = await Api.get('/personas/pdf', {
+    params,
+    responseType: 'blob',
+  });
+  return response.data;
+}
+
 

@@ -1,7 +1,7 @@
 import BreadcrumbReusable from "@/components/shared/BreadcrumbReusable";
 import { notify } from "@/components/shared/Notify";
 import { SkeletonTable } from "@/components/shared/SkeletonTable";
-import { deleteMatricula, getAllMatriculas } from "@/services/matriculaService";
+import { deleteMatricula, exportarMatriculasPdf, getAllMatriculas } from "@/services/matriculaService";
 import React, { useEffect, useState } from "react";
 import { columnsMatriculas } from "./columnsMatriculas";
 import { DataTable } from "@/components/shared/Data_table";
@@ -9,6 +9,8 @@ import CreateMatriculaModal from "./CreateMatriculaModal";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
 import EditMatriculaModal from "./EditMatriculaModal";
 import { Guard } from "@/components/shared/Guard";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 export default function Matriculas() {
   // Estados
@@ -16,6 +18,7 @@ export default function Matriculas() {
   const [loading, setLoading] = useState(true);
   const [editingMatriculaId, setEditingMatriculaId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [descargandoPdf, setDescargandoPdf] = useState(false);
 
   const fetchMatricula = async () => {
     try {
@@ -43,6 +46,37 @@ export default function Matriculas() {
     fetchMatricula();
   }, []);
 
+  // Exportar reporte de tipos de matrícula a Pdf
+  const handleDescargarPdf = async () => {
+    try {
+      setDescargandoPdf(true);
+
+      await notify.promise(
+        (async () => {
+          const blobData = await exportarMatriculasPdf();
+          const url = window.URL.createObjectURL(new Blob([blobData]));
+          const link = document.createElement("a");
+          link.href = url;
+          const fecha = new Date().toISOString().slice(0, 10);
+          link.setAttribute("download", `REPORTE_MATRICULAS_${fecha}.pdf`);
+          document.body.appendChild(link);
+          link.click();
+          link.parentNode.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        })(),
+        {
+          loading: "Generando reporte...",
+          success: "Reporte PDF descargado con éxito",
+          error: "No se pudo procesar el archivo PDF",
+        },
+      );
+    } catch (error) {
+      console.error("Error al descargar reporte:", error);
+    } finally {
+      setDescargandoPdf(false);
+    }
+  };
+
   const items = [
     { label: "Home", href: "/" },
     { label: "Matriculas", href: "/matriculas" },
@@ -59,12 +93,30 @@ export default function Matriculas() {
         {/* Breadcrumb para la Navegación  */}
         <BreadcrumbReusable items={items} />
 
-        {/* Boton para crear una Matricula */}
-        <Guard requiredPermissions="Tipo Matricula.crear">
-          <div className="flex justify-end">
-            <CreateMatriculaModal fetchMatriculas={fetchMatricula} />
-          </div>
-        </Guard>
+        {/* Botón de reporte + Boton para crear una Matricula */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            onClick={handleDescargarPdf}
+            disabled={descargandoPdf}
+            className="flex items-center gap-2 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 dark:border-slate-800 dark:hover:bg-slate-800"
+          >
+            {descargandoPdf ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+            ) : (
+              <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            )}
+            <span className="hidden sm:inline">
+              {descargandoPdf ? "Procesando..." : "Descargar Reporte"}
+            </span>
+          </Button>
+
+          <Guard requiredPermissions="Tipo Matricula.crear">
+            <div className="flex justify-end">
+              <CreateMatriculaModal fetchMatriculas={fetchMatricula} />
+            </div>
+          </Guard>
+        </div>
 
         {/* modal para Editar */}
         <EditMatriculaModal

@@ -44,3 +44,16 @@ export const getTrimestresByTrayecto = async (trayectoId) => {
     const response = await Api.get(`/unidad_curricular/trimestres/${trayectoId}`);
     return response.data;
 }
+
+/**
+ * Descarga el reporte PDF del catálogo de unidades curriculares.
+ * @param {Object} params - Parámetros de filtro (periodo, pnf_id).
+ * @returns {Blob} Archivo binario PDF.
+ */
+export const exportarUnidadesCurricularesPdf = async (params = {}) => {
+    const response = await Api.get('/unidad_curricular/pdf', {
+        params,
+        responseType: 'blob',
+    });
+    return response.data;
+}

@@ -24,6 +24,7 @@ import {
   History,
   ClipboardList,
   BarChart3,
+  FolderOpen,
 } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 import { useHasPermission } from "@/hooks/useHasPermission";
@@ -49,16 +50,17 @@ const academicManagementLinks = [
 // Sub-enlaces agrupados bajo "Estadística Estudiantil" 
 const studentStatisticsLinks = [
   { name: "Proyecciones", href: "/proyecciones", icon: ChartNoAxesCombined, requiredPermissions: "proyeccion.ver" },
-  { name: "Estadistica Inscripción", href: "/estadistica_inscripcion", icon: BarChart3, /*requiredPermissions: "estadistica.ver" */},
+  { name: "Estadistica Inscripción", href: "/estadistica_inscripcion", icon: BarChart3, requiredPermissions: "estadistica.ver" },
 ];
 
 const dashboardLink = { name: "dashboard", href: "/", icon: LayoutGrid };
 
 const secondOtherLinks = [
   { name: "Control de Entregas", href: "/gestion_entregas", icon: FileText, requiredPermissions: "entrega.ver" },
+  { name: "Documentos", href: "/documentos", icon: FolderOpen /*requiredPermissions: "documento.ver"*/ },
   { name: "Censos Estudiantiles", href: "/censo_estudiantil", icon: UserCheck, requiredPermissions: "censo.ver" },
   { name: "Inventario", href: "/inventario", icon: ShelvingUnit, requiredPermissions: "inventario.ver" },
-  { name: "PER", href: "/per", icon: ClipboardList, /*requiredPermissions: "per.ver" */},
+  { name: "PER", href: "/per", icon: ClipboardList, requiredPermissions: "per.ver" },
 ];
 
 const auditLink = { name: "Bitácora", href: "/bitacora", icon: History, requiredPermissions: "bitacora.ver" };

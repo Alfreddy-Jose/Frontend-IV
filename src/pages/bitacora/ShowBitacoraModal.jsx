@@ -6,13 +6,43 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { clasesBadgeAccion, etiquetaAccion } from "./accionesBitacora";
+import { formatIpAddress } from "./ipAddress";
 
 /**
- * Convierte nombres de columnas (ej. 'cedula_persona') a etiquetas legibles (ej. 'Cedula Persona')
+ * Indica si la clave es la etiqueta resuelta de una FK (ej. 'pnf_id_label').
  */
-const formatLabel = (key) => {
+const esClaveLabel = (key) =>
+    typeof key === "string" && key.endsWith("_label");
+
+/**
+ * Indica si la clave es una FK cruda (ej. 'pnf_id').
+ */
+const esClaveId = (key) => typeof key === "string" && key.endsWith("_id");
+
+/**
+ * Devuelve la etiqueta guardada por el backend para una FK, si existe.
+ * Si el registro es antiguo y no tiene etiqueta, retorna undefined para
+ * que la vista use el ID crudo como respaldo.
+ */
+const obtenerLabel = (data, key) => {
+    if (!data || !esClaveId(key)) return undefined;
+
+    const label = data[`${key}_label`];
+
+    return label === null || label === undefined || label === "" ? undefined : label;
+};
+
+/**
+ * Convierte nombres de columnas (ej. 'cedula_persona') a etiquetas legibles (ej. 'Cedula Persona').
+ * Cuando la FK tiene etiqueta se omite el sufijo '_id'.
+ */
+const formatLabel = (key, conLabel = false) => {
     if (!key) return "";
-    return key
+
+    const limpio = conLabel ? key.replace(/_id$/, "") : key;
+
+    return limpio
         .replace(/_/g, " ")
         .replace(/\b\w/g, (char) => char.toUpperCase());
 };
@@ -34,12 +64,37 @@ const renderValue = (val) => {
 };
 
 /**
+ * Renderiza el valor de un campo. Si es una FK con etiqueta resuelta muestra
+ * el nombre legible y, en tono tenue, el ID crudo.
+ */
+const renderValorRegistro = (data, key) => {
+    const label = obtenerLabel(data, key);
+    const valor = data?.[key];
+
+    if (label !== undefined) {
+        return (
+            <span>
+                {label}
+                <span className="ml-2 text-[10px] text-slate-400 font-sans">
+                    #{renderValue(valor)}
+                </span>
+            </span>
+        );
+    }
+
+    return renderValue(valor);
+};
+
+/**
  * Componente para mostrar datos de INSERTAR o ELIMINAR en formato Tabla
  */
 const SingleDataDetailTable = ({ data, title }) => {
     if (!data || Object.keys(data).length === 0) return null;
 
-    const entries = Object.entries(data);
+    // Las etiquetas hermanas se muestran junto a su FK, no como filas aparte.
+    const entries = Object.entries(data).filter(([key]) => !esClaveLabel(key));
+
+    if (entries.length === 0) return null;
 
     return (
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-950 w-full">
@@ -60,16 +115,16 @@ const SingleDataDetailTable = ({ data, title }) => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                        {entries.map(([key, value]) => (
+                        {entries.map(([key]) => (
                             <tr
                                 key={key}
                                 className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors"
                             >
                                 <td className="px-4 py-2 font-medium text-slate-600 dark:text-slate-400">
-                                    {formatLabel(key)}
+                                    {formatLabel(key, obtenerLabel(data, key) !== undefined)}
                                 </td>
                                 <td className="px-4 py-2 text-slate-800 dark:text-slate-200 font-mono break-all">
-                                    {renderValue(value)}
+                                    {renderValorRegistro(data, key)}
                                 </td>
                             </tr>
                         ))}
@@ -84,9 +139,13 @@ const SingleDataDetailTable = ({ data, title }) => {
  * Componente para comparar datos en acciones de 'MODIFICAR'
  */
 const ComparisonDataDetailTable = ({ anteriores, nuevos }) => {
+    // Se comparan y listan solo las claves crudas (sin las etiquetas `_label`).
     const keys = Array.from(
-        new Set([...Object.keys(anteriores || {}), ...Object.keys(nuevos || {})])
-    );
+        new Set([
+            ...Object.keys(anteriores || {}),
+            ...Object.keys(nuevos || {}),
+        ])
+    ).filter((key) => !esClaveLabel(key));
 
     if (keys.length === 0) return null;
 
@@ -110,10 +169,14 @@ const ComparisonDataDetailTable = ({ anteriores, nuevos }) => {
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                         {keys.map((key) => {
+                            // La detección de cambios SIEMPRE usa el valor crudo (_id), no la etiqueta.
                             const valAnt = anteriores?.[key];
                             const valNue = nuevos?.[key];
                             const isChanged =
                                 JSON.stringify(valAnt) !== JSON.stringify(valNue);
+                            const conLabel =
+                                obtenerLabel(anteriores, key) !== undefined ||
+                                obtenerLabel(nuevos, key) !== undefined;
 
                             return (
                                 <tr
@@ -125,13 +188,13 @@ const ComparisonDataDetailTable = ({ anteriores, nuevos }) => {
                                     }
                                 >
                                     <td className="px-4 py-2 font-medium text-slate-600 dark:text-slate-400">
-                                        {formatLabel(key)}
+                                        {formatLabel(key, conLabel)}
                                     </td>
                                     <td className="px-4 py-2 text-slate-700 dark:text-slate-300 font-mono break-all bg-red-50/20 dark:bg-red-950/10">
-                                        {renderValue(valAnt)}
+                                        {renderValorRegistro(anteriores, key)}
                                     </td>
                                     <td className="px-4 py-2 text-slate-700 dark:text-slate-300 font-mono break-all bg-emerald-50/20 dark:bg-emerald-950/10">
-                                        {renderValue(valNue)}
+                                        {renderValorRegistro(nuevos, key)}
                                     </td>
                                 </tr>
                             );
@@ -151,7 +214,7 @@ export default function ShowBitacoraModal({ isOpen, bitacora, onClose }) {
         if (typeof data === "object") return data;
         try {
             return JSON.parse(data);
-        } catch (e) {
+        } catch {
             return null;
         }
     };
@@ -159,6 +222,13 @@ export default function ShowBitacoraModal({ isOpen, bitacora, onClose }) {
     const datosAnteriores = parseJson(bitacora.datos_anteriores);
     const datosNuevos = parseJson(bitacora.datos_nuevos);
     const accionNormalizada = bitacora.accion?.toUpperCase();
+
+    // Acciones con detalle propio; el resto (eventos de sesión) usa el
+    // renderizado genérico de datos nuevos/anteriores.
+    const esComparacion = accionNormalizada === "MODIFICAR";
+    const esEliminacion = accionNormalizada === "ELIMINAR";
+    const esInsercion = accionNormalizada === "INSERTAR";
+    const esAccionConDetalle = esComparacion || esEliminacion || esInsercion;
 
     const dateStr = bitacora.created_at;
     const formattedDate = dateStr
@@ -179,16 +249,8 @@ export default function ShowBitacoraModal({ isOpen, bitacora, onClose }) {
                         <DialogTitle className="text-xl flex flex-col gap-2">
                             <span className="font-bold">Detalles del Registro</span>
                             <div className="flex gap-2 items-center">
-                                <Badge
-                                    className={
-                                        accionNormalizada === "INSERTAR"
-                                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                                            : accionNormalizada === "ELIMINAR"
-                                                ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300"
-                                                : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
-                                    }
-                                >
-                                    {bitacora.accion}
+                                <Badge className={clasesBadgeAccion(bitacora.accion)}>
+                                    {etiquetaAccion(bitacora.accion)}
                                 </Badge>
                                 <span className="text-sm text-slate-500 font-normal">
                                     ID Bitácora: #{bitacora.id}
@@ -217,7 +279,7 @@ export default function ShowBitacoraModal({ isOpen, bitacora, onClose }) {
                                 IP Address:
                             </span>
                             <span className="text-slate-600 dark:text-slate-400">
-                                {bitacora.ip_address || "N/A"}
+                                {formatIpAddress(bitacora.ip_address)}
                             </span>
                         </div>
                         <div>
@@ -233,7 +295,7 @@ export default function ShowBitacoraModal({ isOpen, bitacora, onClose }) {
                                 Registro ID Afinidad:
                             </span>
                             <span className="text-slate-600 dark:text-slate-400 font-mono">
-                                #{bitacora.registro_id}
+                                {bitacora.registro_id ? `#${bitacora.registro_id}` : "N/A"}
                             </span>
                         </div>
                     </div>
@@ -244,24 +306,39 @@ export default function ShowBitacoraModal({ isOpen, bitacora, onClose }) {
                             Datos del Registro
                         </h3>
 
-                        {accionNormalizada === "MODIFICAR" && (
+                        {esComparacion && (
                             <ComparisonDataDetailTable
                                 anteriores={datosAnteriores}
                                 nuevos={datosNuevos}
                             />
                         )}
 
-                        {accionNormalizada === "ELIMINAR" && (
+                        {esEliminacion && (
                             <SingleDataDetailTable
                                 data={datosAnteriores}
                                 title="Información Eliminada"
                             />
                         )}
 
-                        {accionNormalizada === "INSERTAR" && (
+                        {esInsercion && (
                             <SingleDataDetailTable
                                 data={datosNuevos}
                                 title="Información Insertada"
+                            />
+                        )}
+
+                        {/* Eventos de sesión (INICIO_SESION, CIERRE_SESION, INTENTO_FALLIDO) */}
+                        {!esAccionConDetalle && datosNuevos && (
+                            <SingleDataDetailTable
+                                data={datosNuevos}
+                                title="Información del Evento"
+                            />
+                        )}
+
+                        {!esAccionConDetalle && !datosNuevos && datosAnteriores && (
+                            <SingleDataDetailTable
+                                data={datosAnteriores}
+                                title="Información del Evento"
                             />
                         )}
 

@@ -8,8 +8,11 @@ import { DropzoneArea } from "./DropzoneArea";
 import { TablaAnalisisSecciones } from "./TablaAnalisisSecciones";
 import { useAuth } from "@/context/AuthContext";
 import { indexSeccion } from "@/services/estadisticaInscripcionService";
+import { getAllPnfs } from "@/services/pnfService";
+import SelectSearch from "@/components/shared/SelectSearch";
 import { Button } from "@/components/ui/button";
 import {
+    Building2,
     Download,
     Upload,
     AlertTriangle,
@@ -40,10 +43,123 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+const FILTERS_KEY = "estadistica_inscripcion_filters";
+const SESSION_KEY = "estadistica_inscripcion_state"; // kept for backward compatibility if needed
+
+// Valor del select que representa «sin filtro» (todos los PNF).
+const TODOS_LOS_PNF = "todos";
+
+/**
+ * Normaliza el PNF del usuario autenticado a un id en texto.
+ * El contexto de autenticación puede entregarlo como id, como cadena o como objeto.
+ */
+function normalizarPnf(valor) {
+    if (valor === null || valor === undefined) return "";
+
+    const texto = typeof valor === "object"
+        ? String(valor.id ?? valor.pnf_id ?? "")
+        : String(valor).trim();
+
+    if (!texto || texto === "null" || texto === "undefined" || texto === "0") {
+        return "";
+    }
+
+    return texto;
+}
+
+/**
+ * Nombre del PNF asignado al usuario, para mostrarlo cuando no puede elegirlo.
+ */
+function obtenerNombrePnf(usuario, pnf) {
+    if (usuario?.pnf && typeof usuario.pnf === "object") {
+        return usuario.pnf.nombre ?? usuario.pnf.abreviado ?? "";
+    }
+
+    if (pnf && typeof pnf === "object") {
+        return pnf.nombre ?? pnf.abreviado ?? "";
+    }
+
+    return "";
+}
+
+/**
+ * Recupera los filtros guardados (lapso y PNF elegido por el administrador).
+ */
+function leerFiltrosGuardados() {
+    try {
+        const guardado = localStorage.getItem(FILTERS_KEY);
+        return guardado ? JSON.parse(guardado) : {};
+    } catch (error) {
+        console.error("Error al leer los filtros guardados:", error);
+        return {};
+    }
+}
+
+/**
+ * Consulta las secciones del lapso indicado.
+ * Sin pnfId el administrador obtiene las secciones de todos los PNF.
+ */
+async function obtenerSecciones(lapsoId, pnfId) {
+    const params = { lapso_id: lapsoId };
+    if (pnfId) params.pnf_id = pnfId;
+
+    const response = await indexSeccion(params);
+    // El servicio retorna response.data directamente
+    // el backend puede devolver { secciones: [] } o { data: [] } o [] directamente
+    const data = response;
+
+    return data?.secciones ?? data?.data ?? (Array.isArray(data) ? data : []);
+}
+
 export default function EstadisticaInscripcion() {
-    const { lapsoActual } = useAuth();
-    const FILTERS_KEY = "estadistica_inscripcion_filters";
-    const SESSION_KEY = "estadistica_inscripcion_state"; // kept for backward compatibility if needed
+    const { lapsoActual, pnf, user } = useAuth();
+
+    // El backend usa el PNF del usuario autenticado (`$user->pnf`): si tiene un PNF
+    // asignado (coordinador) solo ve las secciones de ese PNF; si no lo tiene
+    // (administrador) puede elegir cualquiera desde el select.
+    const pnfAsignado = normalizarPnf(user?.pnf) || normalizarPnf(pnf);
+    const puedeElegirPnf = !pnfAsignado;
+    const nombrePnfAsignado = obtenerNombrePnf(user, pnf);
+
+    const [pnfs, setPnfs] = useState([]);
+    const [pnfSeleccionado, setPnfSeleccionado] = useState(() => {
+        if (pnfAsignado) return "";
+
+        const guardado = leerFiltrosGuardados();
+        const pnfGuardado = guardado?.pnf_id ? String(guardado.pnf_id) : "";
+
+        return pnfGuardado || TODOS_LOS_PNF;
+    });
+    const [pnfSubida, setPnfSubida] = useState(pnfAsignado);
+
+    // Mapa id → nombre para mostrar la columna PNF cuando el administrador ve todos.
+    const pnfNombres = React.useMemo(() => {
+        if (!puedeElegirPnf) return {};
+
+        return pnfs.reduce((acc, item) => {
+            acc[item.id] = item.nombre ?? item.abreviado ?? `PNF #${item.id}`;
+            return acc;
+        }, {});
+    }, [pnfs, puedeElegirPnf]);
+
+    // Opciones del selector de PNF (incluye la opción «Todos los PNF»).
+    const opcionesPnfFiltro = React.useMemo(
+        () => [{ id: TODOS_LOS_PNF, nombre: "Todos los PNF" }, ...pnfs],
+        [pnfs]
+    );
+
+    // Adaptadores para reutilizar el mismo selector de los formularios (SelectSearch).
+    const formikPnfFiltro = {
+        values: { pnfFiltro: pnfSeleccionado },
+        setFieldValue: (_field, value) => setPnfSeleccionado(value || TODOS_LOS_PNF),
+        setFieldTouched: () => {},
+    };
+
+    const formikPnfSubida = {
+        values: { pnfSubida },
+        setFieldValue: (_field, value) => setPnfSubida(value || ""),
+        setFieldTouched: () => {},
+    };
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -64,49 +180,87 @@ export default function EstadisticaInscripcion() {
     const [secciones, setSecciones] = useState([]);
     const [conflictMessage, setConflictMessage] = useState(null); // mensaje 409
 
-    // --- LOAD FILTERS FROM LOCAL STORAGE AND FETCH SECTIONS FROM BACKEND ---
-    const loadFilters = () => {
-        const saved = localStorage.getItem(FILTERS_KEY);
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                return { lapso_id: parsed.lapso_id || null, pnf_id: parsed.pnf_id || null };
-            } catch (e) {
-                console.error("Error parsing filters from localStorage", e);
-            }
-        }
-        return {};
-    };
+    // --- CARGA DEL LISTADO DE PNF (SOLO ADMINISTRADOR) Y DE LAS SECCIONES ---
+    useEffect(() => {
+        if (!puedeElegirPnf) return;
 
-    const fetchSecciones = async (lapsoId, pnfId) => {
+        let activo = true;
+
+        const cargarPnfs = async () => {
+            try {
+                const response = await getAllPnfs();
+                const lista = Array.isArray(response) ? response : response?.data ?? [];
+
+                if (activo) setPnfs(lista);
+            } catch (error) {
+                console.error("Error al cargar los PNF:", error);
+                notify.error("No se pudieron cargar los PNF.");
+            }
+        };
+
+        cargarPnfs();
+
+        return () => {
+            activo = false;
+        };
+    }, [puedeElegirPnf]);
+
+    // PNF efectivo: el asignado al usuario o el elegido por el administrador.
+    const pnfEfectivo = puedeElegirPnf ? pnfSeleccionado : pnfAsignado;
+
+    // PNF que se envía al backend: null = todos (solo aplica al administrador).
+    const pnfFiltro = pnfEfectivo && pnfEfectivo !== TODOS_LOS_PNF ? pnfEfectivo : null;
+
+    // Recarga las secciones manteniendo el filtro actual (tras importar/dividir/fusionar).
+    const recargarSecciones = async () => {
+        if (!lapsoActual?.id) return;
+
         try {
-            const response = await indexSeccion({ lapso_id: lapsoId, pnf_id: pnfId });
-            // El servicio retorna response.data directamente
-            // el backend puede devolver { secciones: [] } o { data: [] } o [] directamente
-            const data = response;
-            const seccList = data?.secciones ?? data?.data ?? (Array.isArray(data) ? data : []);
-            setSecciones(seccList);
+            const lista = await obtenerSecciones(lapsoActual.id, pnfFiltro);
+            setSecciones(lista);
         } catch (e) {
             console.error("Error fetching secciones", e);
-            notify.error("No se pudieron cargar las secciones.");
+            notify.error(e?.response?.data?.message || "No se pudieron cargar las secciones.");
         }
     };
 
-    React.useEffect(() => {
-        if (!lapsoActual?.id) return;
-        const filters = loadFilters();
-        // Ensure lapso filter matches current lapsoActual
-        const lapsoId = lapsoActual.id;
-        fetchSecciones(lapsoId, filters.pnf_id);
-    }, [lapsoActual?.id]);
+    // Cada cambio de lapso o de PNF refresca el listado de secciones.
+    useEffect(() => {
+        if (!lapsoActual?.id || !pnfEfectivo) return;
 
-    // --- SAVE FILTER PREFERENCES TO LOCAL STORAGE ---
-    React.useEffect(() => {
-        if (lapsoActual?.id) {
-            const filters = { lapso_id: lapsoActual.id };
-            localStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
-        }
-    }, [lapsoActual?.id]);
+        let activo = true;
+
+        const cargar = async () => {
+            try {
+                const lista = await obtenerSecciones(lapsoActual.id, pnfFiltro);
+                if (activo) setSecciones(lista);
+            } catch (e) {
+                if (!activo) return;
+
+                console.error("Error fetching secciones", e);
+                setSecciones([]);
+                notify.error(e?.response?.data?.message || "No se pudieron cargar las secciones.");
+            }
+        };
+
+        cargar();
+
+        return () => {
+            activo = false;
+        };
+    }, [lapsoActual?.id, pnfEfectivo, pnfFiltro]);
+
+    // --- GUARDA LA PREFERENCIA DE FILTROS (LAPSO + PNF ELEGIDO) ---
+    useEffect(() => {
+        if (!lapsoActual?.id) return;
+
+        const filters = {
+            lapso_id: lapsoActual.id,
+            pnf_id: pnfFiltro,
+        };
+
+        localStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
+    }, [lapsoActual?.id, pnfFiltro]);
 
     const items = [
         { label: "Home", href: "/" },
@@ -115,6 +269,14 @@ export default function EstadisticaInscripcion() {
 
     // Lógica de carga compartida para importación normal y con reemplazo confirmado
     const executeUpload = async (confirmarReemplazo = false) => {
+        // El backend exige el PNF del usuario o el elegido por el administrador.
+        const pnfDestino = pnfAsignado || pnfSubida;
+
+        if (!pnfDestino) {
+            notify.warning("Selecciona un PNF para asociar el archivo.");
+            return;
+        }
+
         setLoading(true);
         setProgress(0);
 
@@ -126,6 +288,7 @@ export default function EstadisticaInscripcion() {
             const formData = new FormData();
             formData.append("archivo", file);
             formData.append("lapso_id", lapsoActual.id);
+            formData.append("pnf_id", pnfDestino);
             if (confirmarReemplazo) {
                 formData.append("confirmar_reemplazo", 1);
             }
@@ -141,7 +304,7 @@ export default function EstadisticaInscripcion() {
                 setShowUploadModal(false);
                 setLoading(false);
                 setFile(null);
-                fetchSecciones(lapsoActual?.id);
+                recargarSecciones();
             }, 500);
 
         } catch (error) {
@@ -163,6 +326,25 @@ export default function EstadisticaInscripcion() {
         }
     };
 
+    const handleUploadModalChange = (open) => {
+        if (loading) return;
+
+        if (open) {
+            // Si el administrador ya filtró un PNF se usa ese; si no, lo elige en el modal.
+            setPnfSubida(
+                pnfAsignado || (pnfEfectivo === TODOS_LOS_PNF ? "" : pnfEfectivo)
+            );
+        }
+
+        setShowUploadModal(open);
+
+        if (!open) {
+            setFile(null);
+            setProgress(0);
+            setPnfSubida(pnfAsignado || "");
+        }
+    };
+
     const handleUpload = async () => {
         if (!file) {
             notify.warning("Selecciona un archivo primero.");
@@ -180,7 +362,7 @@ export default function EstadisticaInscripcion() {
             await fusionarSecciones(payload);
             notify.success("Sección fusionada correctamente.");
             // Refresh sections from backend to ensure consistency
-            fetchSecciones(lapsoActual?.id);
+            recargarSecciones();
         } catch (error) {
             notify.error(error?.response?.data?.message || "Error al fusionar las secciones.");
             throw error;
@@ -192,7 +374,7 @@ export default function EstadisticaInscripcion() {
             await dividirSeccion(payload);
             notify.success("Sección actualizada correctamente.");
             // Refresh sections from backend to ensure consistency
-            fetchSecciones(lapsoActual?.id);
+            recargarSecciones();
         } catch (error) {
             notify.error(
                 error?.response?.data?.message || "Error al procesar la sección."
@@ -230,21 +412,50 @@ export default function EstadisticaInscripcion() {
             <div className="flex flex-col gap-4 mb-8 md:flex-row md:items-center md:justify-between">
                 <BreadcrumbReusable items={items} />
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                     <SelectorLapso />
 
-                    <Button variant="outline" onClick={downloadTemplate} className="gap-2">
+                    {puedeElegirPnf ? (
+                        <SelectSearch
+                            name="pnfFiltro"
+                            options={opcionesPnfFiltro}
+                            formik={formikPnfFiltro}
+                            valueKey="id"
+                            labelKey="nombre"
+                            placeholder="Selecciona un PNF"
+                            div_style="w-56 shrink-0"
+                        />
+                    ) : (
+                        nombrePnfAsignado && (
+                            <span
+                                className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+                                title="Solo se muestran las secciones de su PNF"
+                            >
+                                <Building2 className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                                {nombrePnfAsignado}
+                            </span>
+                        )
+                    )}
+
+                    <Button
+                        variant="outline"
+                        onClick={downloadTemplate}
+                        className="shrink-0 gap-2"
+                    >
                         <Download className="w-4 h-4" />
                         Descargar Plantilla
                     </Button>
-                    <Button onClick={() => setShowUploadModal(true)} className="gap-2">
+                    <Button
+                        onClick={() => handleUploadModalChange(true)}
+                        className="shrink-0 gap-2"
+                    >
                         <Upload className="w-4 h-4" />
                         Subir Archivo
                     </Button>
                 </div>
             </div>
 
-            <Dialog open={showUploadModal} onOpenChange={setShowUploadModal}>
+            <Dialog open={showUploadModal} onOpenChange={handleUploadModalChange}>
                 <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
                         <DialogTitle>Importar Estadística</DialogTitle>
@@ -252,6 +463,31 @@ export default function EstadisticaInscripcion() {
                             Sube el archivo Excel con los datos de las secciones.
                         </DialogDescription>
                     </DialogHeader>
+
+                    {puedeElegirPnf && (
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="pnfSubida"
+                                className="text-sm font-medium text-slate-700 dark:text-slate-300"
+                            >
+                                PNF al que pertenece el archivo
+                            </label>
+                            <SelectSearch
+                                name="pnfSubida"
+                                options={pnfs}
+                                formik={formikPnfSubida}
+                                valueKey="id"
+                                labelKey="nombre"
+                                placeholder="Selecciona un PNF"
+                                div_style="w-full"
+                            />
+                            {!pnfSubida && (
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Selecciona el PNF antes de subir el archivo.
+                                </p>
+                            )}
+                        </div>
+                    )}
 
                     <DropzoneArea
                         file={file}
@@ -267,6 +503,7 @@ export default function EstadisticaInscripcion() {
             {/* Tabla de análisis — visible tras la importación */}
             <TablaAnalisisSecciones
                 secciones={secciones}
+                pnfNombres={pnfNombres}
                 onDividir={handleDividir}
                 onFusionar={handleFusionar}
             />

@@ -24,3 +24,16 @@ export const getTrayectoById = async (trayectoId) => {
   const response = await Api.get(`/trayecto/${trayectoId}`);
   return response.data;
 }
+
+/**
+ * Descarga el reporte PDF del catálogo de trayectos.
+ * @param {Object} params - Parámetros de filtro.
+ * @returns {Blob} Archivo binario PDF.
+ */
+export const exportarTrayectosPdf = async (params = {}) => {
+  const response = await Api.get('/trayectos/pdf', {
+    params,
+    responseType: 'blob',
+  });
+  return response.data;
+}

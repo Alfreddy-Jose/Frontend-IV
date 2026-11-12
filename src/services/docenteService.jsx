@@ -29,3 +29,16 @@ export const getDataSelect = async () => {
   const response = await Api.get(`/docente/getDataSelect`);
   return response.data;
 }
+
+/**
+ * Descarga el reporte PDF de docentes respetando los filtros enviados.
+ * @param {Object} params - Parámetros de filtro (categoria, pnf_id).
+ * @returns {Blob} Archivo binario PDF.
+ */
+export const exportarDocentesPdf = async (params = {}) => {
+  const response = await Api.get('/docentes/pdf', {
+    params,
+    responseType: 'blob',
+  });
+  return response.data;
+}

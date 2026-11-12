@@ -22,6 +22,7 @@ import GenericShowModal from "@/components/shared/GenericShowModal";
 import { Package } from "lucide-react";
 import { getInventarioSections } from "./inventarioSections";
 import EditBienModal from "./EditBienModal";
+import { Guard } from "@/components/shared/Guard";
 
 export default function Inventario() {
   const { lapsoActual, user, pnf } = useAuth();
@@ -273,12 +274,14 @@ export default function Inventario() {
 
           {/* Modal para Registrar Bien */}
           {lapsoActual ? (
-            <CreateBienModal
-              fetchInventario={fetchInventario}
-              lapsoActual={lapsoActual}
-              pnfs={pnfs}
-              pnfId={pnf}
-            />
+            <Guard requiredPermissions="inventario.crear">
+              <CreateBienModal
+                fetchInventario={fetchInventario}
+                lapsoActual={lapsoActual}
+                pnfs={pnfs}
+                pnfId={pnf}
+              />
+            </Guard>
           ) : (
             <Button
               disabled

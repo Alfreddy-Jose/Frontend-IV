@@ -2,6 +2,7 @@ import BreadcrumbReusable from "@/components/shared/BreadcrumbReusable";
 import { notify } from "@/components/shared/Notify";
 import {
   deleteLapso,
+  exportarLapsosPdf,
   getAllLapsos,
   getDataSelect,
   forzarInicioLapso,
@@ -15,9 +16,13 @@ import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructi
 import EditarLapsoModal from "./EditarLapsoModal";
 import { SkeletonTable } from "@/components/shared/SkeletonTable";
 import { Guard } from "@/components/shared/Guard";
-import { AlertTriangle, Activity } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, Activity, Download } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Lapso() {
+  const { refreshLapsos } = useAuth();
+
   // Estados
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +30,7 @@ export default function Lapso() {
   const [deletingId, setDeletingId] = useState(null);
   const [dataSelect, setDataSelect] = useState([]);
   const [statusChangeConfig, setStatusChangeConfig] = useState(null);
+  const [descargandoPdf, setDescargandoPdf] = useState(false);
 
   const fetchLapsos = async () => {
     try {
@@ -38,6 +44,13 @@ export default function Lapso() {
     } finally { 
       setLoading(false);
     }
+  };
+
+  // Refresca la tabla y el contexto global: al activar/cerrar/eliminar un
+  // lapso cambia la lista de lapsos activos que alimenta al selector.
+  const refreshAll = async () => {
+    await fetchLapsos();
+    refreshLapsos();
   };
 
   const handleEdit = (lapso) => {
@@ -73,6 +86,37 @@ export default function Lapso() {
         response?.data?.message ||
         "Lapso académico cerrado con éxito.";
       notify.success(successMessage);
+    }
+  };
+
+  // Exportar reporte de lapsos académicos a Pdf
+  const handleDescargarPdf = async () => {
+    try {
+      setDescargandoPdf(true);
+
+      await notify.promise(
+        (async () => {
+          const blobData = await exportarLapsosPdf();
+          const url = window.URL.createObjectURL(new Blob([blobData]));
+          const link = document.createElement("a");
+          link.href = url;
+          const fecha = new Date().toISOString().slice(0, 10);
+          link.setAttribute("download", `REPORTE_LAPSOS_${fecha}.pdf`);
+          document.body.appendChild(link);
+          link.click();
+          link.parentNode.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        })(),
+        {
+          loading: "Generando reporte...",
+          success: "Reporte PDF descargado con éxito",
+          error: "No se pudo procesar el archivo PDF",
+        },
+      );
+    } catch (error) {
+      console.error("Error al descargar reporte:", error);
+    } finally {
+      setDescargandoPdf(false);
     }
   };
 
@@ -138,12 +182,30 @@ export default function Lapso() {
         {/* Breadcrumb para la Navegación  */}
         <BreadcrumbReusable items={items} />
 
-        {/* Boton para crear un Lapso  */}
-        <Guard requiredPermissions="lapso.crear">
-          <div className="flex justify-end">
-            <CreateLapsoModal fetchLapsos={fetchLapsos} dataSelect={dataSelect} />
-          </div>
-        </Guard>
+        {/* Botón de reporte + boton para crear un Lapso */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            onClick={handleDescargarPdf}
+            disabled={descargandoPdf}
+            className="flex items-center gap-2 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 dark:border-slate-800 dark:hover:bg-slate-800"
+          >
+            {descargandoPdf ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+            ) : (
+              <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            )}
+            <span className="hidden sm:inline">
+              {descargandoPdf ? "Procesando..." : "Descargar Reporte"}
+            </span>
+          </Button>
+
+          <Guard requiredPermissions="lapso.crear">
+            <div className="flex justify-end">
+              <CreateLapsoModal fetchLapsos={refreshAll} dataSelect={dataSelect} />
+            </div>
+          </Guard>
+        </div>
 
         {/* modal para Editar */}
         <EditarLapsoModal
@@ -151,7 +213,7 @@ export default function Lapso() {
           isOpen={!!editingLapsoId}
           lapsoId={editingLapsoId}
           onClose={() => setEditingLapsoId(null)}
-          onSuccess={fetchLapsos}
+          onSuccess={refreshAll}
         />
 
         {/* Modal de confirmación y eliminación del usuario */}
@@ -159,7 +221,7 @@ export default function Lapso() {
           isOpen={!!deletingId}
           id={deletingId}
           onClose={() => setDeletingId(null)}
-          onSuccess={fetchLapsos}
+          onSuccess={refreshAll}
           deleteFunction={deleteLapso}
         />
 
@@ -167,7 +229,7 @@ export default function Lapso() {
         <AlertDialogDestructive
           isOpen={!!statusChangeConfig}
           onClose={() => setStatusChangeConfig(null)}
-          onSuccess={fetchLapsos}
+          onSuccess={refreshAll}
           title="¿Confirmar cambio de estado?"
           description={modalDescription}
           confirmText={modalConfirmText}
