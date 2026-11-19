@@ -25,10 +25,13 @@ export const updatePersona = async (personaId, personaData) => {
   return response.data;
 }
 
-export const getSeccionesByPnf = async (pnfId = null) => {
-  // Si viene un pnfId lo añade como query param, de lo contrario pide todas
-  const url = pnfId ? `/persona/get_secciones?pnf_id=${pnfId}` : '/persona/get_secciones';
-  const response = await Api.get(url);
+export const getSeccionesByPnf = async (pnfId = null, lapsoId = null) => {
+  // Filtra por PNF y/o lapso académico cuando se reciben. Si no se envía
+  // ninguno, se mantiene el comportamiento previo (todas las secciones).
+  const params = {};
+  if (pnfId) params.pnf_id = pnfId;
+  if (lapsoId) params.lapso_id = lapsoId;
+  const response = await Api.get('/persona/get_secciones', { params });
   return response.data;
 }
 

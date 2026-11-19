@@ -12,12 +12,15 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import * as Yup from "yup";
 import { getSeccionesByPnf } from '@/services/personaService';
 import { useAuth } from '@/context/AuthContext';
+import { useLapso } from '@/context/LapsoContext';
 
 export default function CreatePersonasModal({ fetchPersona, estados, loadMunicipios }) {
   const [openModal, setOpenModal] = useState(false);
   const [municipios, setMunicipios] = useState([]);
   const [loadingMunicipios, setLoadingMunicipios] = useState(false);
   const { user, pnf } = useAuth();
+  // Lapso activo del navbar: las secciones se filtran por él.
+  const { selectedLapso } = useLapso();
   const [secciones, setSecciones] = useState([]);
   const [loadingSecciones, setLoadingSecciones] = useState(false);
 
@@ -25,7 +28,7 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
     setLoadingSecciones(true);
     try {
       // Si es coordinador y tiene pnf, pasa el id del pnf; de lo contrario pasa null
-      const data = await getSeccionesByPnf(pnf ? pnf : null);
+      const data = await getSeccionesByPnf(pnf ? pnf : null, selectedLapso?.id);
       setSecciones(data);      
     } catch (error) {
       console.error("Error al cargar Secciones:", error);
@@ -33,7 +36,7 @@ export default function CreatePersonasModal({ fetchPersona, estados, loadMunicip
     } finally {
       setLoadingSecciones(false);
     }
-  }, [user, pnf]);
+  }, [user, pnf, selectedLapso?.id]);
 
   const cargarMunicipios = useCallback(async (estadoId) => {
     if (!estadoId) {

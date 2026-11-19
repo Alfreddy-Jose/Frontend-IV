@@ -3,6 +3,7 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import { getPersonaById, updatePersona, getSeccionesByPnf } from "@/services/personaService";
 import { useAuth } from "@/context/AuthContext";
+import { useLapso } from "@/context/LapsoContext";
 import { notify } from "@/components/shared/Notify";
 import { ModalFormulario } from "@/components/shared/ModalFormulario";
 import { ModernInput } from "@/components/shared/InputModerno";
@@ -19,6 +20,8 @@ export default function EditPersonasModal({ isOpen, onClose, personaId, onSucces
   const [municipios, setMunicipios] = useState([]);
   const [loadingMunicipios, setLoadingMunicipios] = useState(false);
   const { user, pnf } = useAuth();
+  // Lapso activo del navbar: las secciones se filtran por él.
+  const { selectedLapso } = useLapso();
   const [secciones, setSecciones] = useState([]);
   const [loadingSecciones, setLoadingSecciones] = useState(false);
 
@@ -27,7 +30,7 @@ export default function EditPersonasModal({ isOpen, onClose, personaId, onSucces
     try {
       const esCoordinador = user?.roles[0]?.name === "COORDINADOR";
       // Si es coordinador y tiene pnf, pasa el id del pnf; de lo contrario pasa null
-      const data = await getSeccionesByPnf(esCoordinador && pnf ? pnf : null);
+      const data = await getSeccionesByPnf(esCoordinador && pnf ? pnf : null, selectedLapso?.id);
       setSecciones(data);
     } catch (error) {
       console.error("Error al cargar Secciones:", error);
@@ -35,7 +38,7 @@ export default function EditPersonasModal({ isOpen, onClose, personaId, onSucces
     } finally {
       setLoadingSecciones(false);
     }
-  }, [user, pnf]);
+  }, [user, pnf, selectedLapso?.id]);
 
   const cargarMunicipios = useCallback(async (estadoId) => {
     if (!estadoId) {

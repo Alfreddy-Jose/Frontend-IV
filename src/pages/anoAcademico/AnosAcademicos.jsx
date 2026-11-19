@@ -18,8 +18,13 @@ import {
 import { columnsAnos } from "./columnsAnos";
 import CreateAnoModal from "./CreateAnoModal";
 import EditAnoModal from "./EditAnoModal";
+import { useLapso } from "@/context/LapsoContext";
 
 export default function AnosAcademicos() {
+  // Contexto global de lapsos: al activar/cerrar un año el backend cierra sus
+  // lapsos en cascada y debemos refrescar el selector sin recargar la página.
+  const { refreshLapsos } = useLapso();
+
   // Estados requeridos
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +46,13 @@ export default function AnosAcademicos() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Refresca la tabla local y el contexto global de lapsos: activar/cerrar un
+  // año cierra sus lapsos en cascada, por lo que el selector debe actualizarse.
+  const refreshAll = async () => {
+    await fetchAnos();
+    refreshLapsos();
   };
 
   const handleEdit = (ano) => {
@@ -65,6 +77,9 @@ export default function AnosAcademicos() {
         response?.data?.message ||
         "Año académico iniciado con éxito de manera anticipada";
       notify.success(successMessage);
+      // El backend cerró el año anterior y TODOS sus lapsos: refrescamos el
+      // contexto global de inmediato para que el SelectorLapso se actualice.
+      refreshLapsos();
     } else if (action === "cerrar") {
       const response = await forzarCierreAno(ano.id);
       const successMessage =
@@ -72,6 +87,8 @@ export default function AnosAcademicos() {
         response?.data?.message ||
         "Año académico cerrado con éxito de manera anticipada";
       notify.success(successMessage);
+      // El cierre del año arrastra el cierre de sus lapsos asociados.
+      refreshLapsos();
     }
   };
 
@@ -181,7 +198,7 @@ export default function AnosAcademicos() {
 
           <Guard requiredPermissions="anoAcademico.crear" blockOnReadOnly>
             <div className="flex justify-end">
-              <CreateAnoModal fetchAnos={fetchAnos} />
+              <CreateAnoModal fetchAnos={refreshAll} />
             </div>
           </Guard>
         </div>
@@ -191,7 +208,7 @@ export default function AnosAcademicos() {
           isOpen={!!editingAnoId}
           anoId={editingAnoId}
           onClose={() => setEditingAnoId(null)}
-          onSuccess={fetchAnos}
+          onSuccess={refreshAll}
         />
 
         {/* Modal para Eliminar */}
@@ -199,7 +216,7 @@ export default function AnosAcademicos() {
           isOpen={!!deletingId}
           id={deletingId}
           onClose={() => setDeletingId(null)}
-          onSuccess={fetchAnos}
+          onSuccess={refreshAll}
           deleteFunction={deleteAno}
         />
 

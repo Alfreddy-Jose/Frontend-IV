@@ -36,7 +36,7 @@ import { SkeletonTableFilter } from "@/components/shared/SkeletonTableFilter";
 export default function Censos() {
   const { pnf, lapsoActual, user } = useAuth();
   // Modo consulta cuando el lapso seleccionado está cerrado.
-  const { isReadOnly } = useLapso();
+  const { selectedLapso, isReadOnly } = useLapso();
 
   // Estados
   const [data, setData] = useState([]);
@@ -121,8 +121,10 @@ export default function Censos() {
   useEffect(() => {
     const fetchCatalogos = async () => {
       try {
+        // Las secciones se filtran por el lapso seleccionado en el navbar para
+        // que los trámites de "cambio de sección" no muestren otros lapsos.
         const [seccionesData] = await Promise.all([
-          getSeccionesByPnf(pnf ? pnf : null),
+          getSeccionesByPnf(pnf ? pnf : null, selectedLapso?.id),
         ]);
         setSecciones(seccionesData || []);
       } catch (error) {
@@ -132,7 +134,7 @@ export default function Censos() {
     fetchCatalogos();
     fetchCatalogosFormularios();
     fetchCensos();
-  }, [pnf, lapsoActual]);
+  }, [pnf, lapsoActual, selectedLapso?.id]);
 
   const items = [
     { label: "Home", href: "/" },

@@ -6,6 +6,7 @@ import {
   useEffect,
   useMemo,
   useCallback,
+  useRef,
 } from "react";
 import { getLapsos } from "@/services/lapsoService";
 import { useAuth } from "@/context/AuthContext";
@@ -56,6 +57,10 @@ export function LapsoProvider({ children }) {
   const [selectedLapso, setSelectedLapso] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Marca si el usuario eligió a propósito un lapso histórico (cerrado). En ese
+  // caso los refrescos automáticos no deben devolverlo al lapso activo.
+  const intentoHistoricoRef = useRef(false);
+
   const fetchLapsos = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
@@ -64,29 +69,51 @@ export function LapsoProvider({ children }) {
       setLapsos(lista);
 
       setSelectedLapso((prev) => {
-        if (lista.length === 0) return null;
+        if (lista.length === 0) {
+          intentoHistoricoRef.current = false;
+          return null;
+        }
 
-        // 1. Conservamos la selección vigente si el lapso sigue visible.
-        const actual = lista.find(
-          (l) => String(l.id) === String(prev?.id) && esVisible(l),
-        );
-        if (actual) return actual;
+        // 1. Si el usuario consulta un histórico a propósito, se respeta
+        //    mientras el lapso siga existiendo.
+        if (intentoHistoricoRef.current) {
+          const conservar = lista.find(
+            (l) => String(l.id) === String(prev?.id) && esVisible(l),
+          );
+          if (conservar) return conservar;
+          intentoHistoricoRef.current = false;
+        }
 
-        // 2. Respetamos la selección guardada entre recargas (solo si es
-        //    visible, para no reabrir el histórico sin intención del usuario).
+        // 2. Modo automático: priorizar un lapso activo (respetando el guardado
+        //    si sigue activo). Así, al activar un año nuevo y cerrarse el
+        //    anterior en cascada, el selector salta al nuevo activo sin F5.
         let guardado = null;
         try {
           guardado = JSON.parse(localStorage.getItem("lapsoActual"));
         } catch {
           guardado = null;
         }
-        const guardadoEnLista = lista.find(
+
+        const guardadoActivo = lista.find(
+          (l) => String(l.id) === String(guardado?.id) && esActivo(l),
+        );
+        if (guardadoActivo) return guardadoActivo;
+
+        const activo = lista.find(esActivo);
+        if (activo) return activo;
+
+        // 3. Sin lapsos activos: conservar el visible actual o el guardado.
+        const conservarPrev = lista.find(
+          (l) => String(l.id) === String(prev?.id) && esVisible(l),
+        );
+        if (conservarPrev) return conservarPrev;
+
+        const guardadoVisible = lista.find(
           (l) => String(l.id) === String(guardado?.id) && esVisible(l),
         );
-        if (guardadoEnLista) return guardadoEnLista;
+        if (guardadoVisible) return guardadoVisible;
 
-        // 3. Por defecto el primer lapso activo; si no hay, el primer cerrado.
-        return lista.find(esActivo) ?? lista.find(esCerrado) ?? lista[0];
+        return lista.find(esCerrado) ?? lista[0];
       });
     } catch (error) {
       console.error("Error al obtener los lapsos académicos:", error);
@@ -95,11 +122,21 @@ export function LapsoProvider({ children }) {
     }
   }, []);
 
+  /**
+   * Setter público: registra si el usuario eligió un histórico (cerrado) para
+   * que los refrescos automáticos respeten su elección.
+   */
+  const seleccionarLapso = useCallback((lapso) => {
+    intentoHistoricoRef.current = esCerrado(lapso);
+    setSelectedLapso(lapso);
+  }, []);
+
   useEffect(() => {
     // Solo se omite la consulta sin sesión: en el login o si aún no hay usuario.
     // Nótese que "/" (Dashboard) sí debe cargar los lapsos.
     if (isLoginPage() || !user) {
       if (!user) {
+        intentoHistoricoRef.current = false;
         setLapsos([]);
         setSelectedLapso(null);
       }
@@ -154,13 +191,13 @@ export function LapsoProvider({ children }) {
     () => ({
       lapsos,
       selectedLapso,
-      setSelectedLapso,
+      setSelectedLapso: seleccionarLapso,
       isReadOnly,
       isHistorical: isReadOnly,
       loading,
       refreshLapsos: fetchLapsos,
     }),
-    [lapsos, selectedLapso, isReadOnly, loading, fetchLapsos],
+    [lapsos, selectedLapso, seleccionarLapso, isReadOnly, loading, fetchLapsos],
   );
 
   return <LapsoContext.Provider value={value}>{children}</LapsoContext.Provider>;

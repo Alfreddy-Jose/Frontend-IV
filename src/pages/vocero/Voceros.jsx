@@ -28,7 +28,7 @@ import { SkeletonTableFilter } from "@/components/shared/SkeletonTableFilter";
 export default function Voceros() {
   const { pnf, lapsoActual, user } = useAuth();
   // Modo consulta cuando el lapso seleccionado está cerrado.
-  const { isReadOnly } = useLapso();
+  const { selectedLapso, isReadOnly } = useLapso();
 
   // Estados de datos
   const [data, setData] = useState([]);
@@ -96,8 +96,10 @@ export default function Voceros() {
   useEffect(() => {
     const fetchCatalogos = async () => {
       try {
+        // Solo se ofrecen las secciones del lapso seleccionado en el navbar,
+        // para que un vocero no se asigne a una sección de otro lapso.
         const [seccionesData] = await Promise.all([
-          getSeccionesByPnf(pnf ? pnf : null),
+          getSeccionesByPnf(pnf ? pnf : null, selectedLapso?.id),
         ]);
         setSecciones(seccionesData || []);
       } catch (error) {
@@ -108,7 +110,7 @@ export default function Voceros() {
     fetchCatalogos();
     fetchCatalogosFormularios();
     fetchVoceros();
-  }, [pnf, lapsoActual]);
+  }, [pnf, lapsoActual, selectedLapso?.id]);
 
   // Handlers de acciones pasados a la columna de la tabla
   const handleViewDetails = (vocero) => {

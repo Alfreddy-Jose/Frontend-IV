@@ -7,11 +7,15 @@ import { ModalFormulario } from "@/components/shared/ModalFormulario";
 import { Label } from "@/components/ui/label";
 import { PlusIcon } from "lucide-react";
 import SelectSearch from "@/components/shared/SelectSearch";
+import { useLapso } from "@/context/LapsoContext";
 
 export default function CreateSeccioneModal({ fetchSecciones, selectData }) {
     const [openModal, setOpenModal] = useState(false);
     const [pnfs, setPnfs] = useState([]);
     const [loadingPnfs, setLoadingPnfs] = useState(false);
+
+    // El lapso ya no se elige en el formulario: se hereda del selector global.
+    const { selectedLapso } = useLapso();
 
     const validationSchema = useMemo(
         () =>
@@ -48,7 +52,8 @@ export default function CreateSeccioneModal({ fetchSecciones, selectData }) {
         initialValues: {
             pnf_id: "",
             trayecto_id: "",
-            lapso_id: "",
+            // Heredado automáticamente del SelectorLapso global del navbar.
+            lapso_id: selectedLapso?.id ? String(selectedLapso.id) : "",
             sede_id: "",
             matricula_id: "",
         },
@@ -147,22 +152,6 @@ export default function CreateSeccioneModal({ fetchSecciones, selectData }) {
                 />
                 {formik.touched.pnf_id && formik.errors.pnf_id && (
                     <p className="text-xs text-red-500 font-medium">{formik.errors.pnf_id}</p>
-                )}
-            </div>
-
-            {/* select de lapsos */}
-            <div className="md:col-span-4 space-y-1 flex flex-col">
-                <Label htmlFor="lapso_id">Lapso</Label>
-                <SelectSearch
-                    name="lapso_id"
-                    options={selectData?.lapsos || []}
-                    formik={formik}
-                    labelKey="nombre_lapso"
-                    valueKey="id"
-                    placeholder="Seleccione un lapso"
-                />
-                {formik.touched.lapso_id && formik.errors.lapso_id && (
-                    <p className="text-xs text-red-500 font-medium">{formik.errors.lapso_id}</p>
                 )}
             </div>
 
