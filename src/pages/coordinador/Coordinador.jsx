@@ -121,7 +121,7 @@ export default function Coordinador() {
                         </span>
                     </Button>
 
-                    <Guard requiredPermissions="coordinador.crear">
+                    <Guard requiredPermissions="coordinador.crear" blockOnReadOnly>
                         <div className="flex justify-end">
                             <CreateCoordinadorModal fetchCoordinadores={fetchCoordinadores} dataSelect={dataSelect} />
                         </div>

@@ -157,7 +157,7 @@ export default function Sedes() {
             </span>
           </Button>
 
-          <Guard requiredPermissions="sede.crear">
+          <Guard requiredPermissions="sede.crear" blockOnReadOnly>
             <div className="flex justify-end">
               {<CreateSedeModal
                 fetchSedes={fetchSedes}

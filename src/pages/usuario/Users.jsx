@@ -69,7 +69,7 @@ function Users() {
         <BreadcrumbReusable items={items} />
 
         {/* boton de agregar usuario al lado derecho  */}
-        <Guard requiredPermissions="usuario.crear">
+        <Guard requiredPermissions="usuario.crear" blockOnReadOnly>
           <div className="flex justify-end">
             <CreateUserModal fetchUsers={fetchUsers} roles={roles} />
           </div>

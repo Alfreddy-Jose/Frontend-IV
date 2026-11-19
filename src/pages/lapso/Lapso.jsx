@@ -19,9 +19,12 @@ import { Guard } from "@/components/shared/Guard";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Activity, Download } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useLapso } from "@/context/LapsoContext";
 
 export default function Lapso() {
   const { refreshLapsos } = useAuth();
+  // Refresca el listado global (SelectorLapso) tras crear, cerrar o activar.
+  const { refreshLapsos: refreshLapsosGlobal } = useLapso();
 
   // Estados
   const [data, setData] = useState([]);
@@ -51,6 +54,8 @@ export default function Lapso() {
   const refreshAll = async () => {
     await fetchLapsos();
     refreshLapsos();
+    // Actualiza el listado completo del contexto global (activos + cerrados).
+    refreshLapsosGlobal();
   };
 
   const handleEdit = (lapso) => {
@@ -200,7 +205,7 @@ export default function Lapso() {
             </span>
           </Button>
 
-          <Guard requiredPermissions="lapso.crear">
+          <Guard requiredPermissions="lapso.crear" blockOnReadOnly>
             <div className="flex justify-end">
               <CreateLapsoModal fetchLapsos={refreshAll} dataSelect={dataSelect} />
             </div>

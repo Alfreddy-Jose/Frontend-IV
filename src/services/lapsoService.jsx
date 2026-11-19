@@ -9,6 +9,18 @@ export const getActivosLapsos = async () => {
   return response.data;
 }
 
+/**
+ * Obtiene el listado completo de lapsos académicos (activos y cerrados).
+ * El backend ya devuelve todos los lapsos en GET /lapsos, por lo que el
+ * parámetro `params` solo se usa para filtros opcionales a futuro.
+ * @param {Object} params - Filtros opcionales enviados como query string.
+ * @returns {Promise<Object>} Respuesta con { success, data: [...] }.
+ */
+export const getLapsos = async (params = {}) => {
+  const response = await api.get('/lapsos', { params });
+  return response.data;
+}
+
 export const createLapso = async (lapsoData) => {
   const response = await api.post('/lapso', lapsoData);
   return response.data;

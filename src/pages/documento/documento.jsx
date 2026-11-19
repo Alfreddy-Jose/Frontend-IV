@@ -12,6 +12,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/context/AuthContext";
+import { useLapso } from "@/context/LapsoContext";
 import { getAllPnfs } from "@/services/pnfService";
 import {
     descargarDocumento,
@@ -62,6 +63,8 @@ function obtenerNombrePnf(usuario, pnf) {
 
 export default function Documento() {
     const { pnf, user } = useAuth();
+    // Modo consulta cuando el lapso seleccionado está cerrado.
+    const { isReadOnly } = useLapso();
 
     // El backend usa el PNF del usuario autenticado (`$user->pnf`): si tiene un PNF
     // asignado (coordinador) solo opera sobre él; si no lo tiene (administrador)
@@ -256,6 +259,45 @@ export default function Documento() {
         }
     };
 
+    /**
+     * Abre el documento en una pestaña nueva del navegador.
+     * La pestaña se crea antes de esperar la descarga (dentro del gesto del usuario)
+     * para que el navegador no la bloquee; luego se le asigna la URL del blob.
+     */
+    const abrirDocumento = async (documento) => {
+        const ventana = window.open("", "_blank");
+
+        try {
+            const blob = await descargarDocumento(documento.id);
+            const url = window.URL.createObjectURL(
+                new Blob([blob], { type: blob?.type || "" })
+            );
+
+            if (ventana && !ventana.closed) {
+                ventana.location.href = url;
+            } else {
+                // Si el navegador bloqueó la pestaña, se intenta con un enlace.
+                const link = window.document.createElement("a");
+                link.href = url;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                window.document.body.appendChild(link);
+                link.click();
+                link.remove();
+            }
+
+            // La pestaña nueva necesita que el blob siga vivo para mostrar el archivo.
+            window.setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+        } catch (error) {
+            if (ventana && !ventana.closed) ventana.close();
+
+            console.error("Error al abrir el documento:", error);
+            notify.error(
+                error?.response?.data?.message || "No se pudo abrir el documento."
+            );
+        }
+    };
+
     const handleUploadModalChange = (open) => {
         if (uploading) return;
 
@@ -311,13 +353,15 @@ export default function Documento() {
                         )
                     )}
 
-                    <Button
-                        onClick={() => handleUploadModalChange(true)}
-                        className="gap-2"
-                    >
-                        <Upload className="h-4 w-4" />
-                        Subir Documento
-                    </Button>
+                    {!isReadOnly && (
+                        <Button
+                            onClick={() => handleUploadModalChange(true)}
+                            className="gap-2"
+                        >
+                            <Upload className="h-4 w-4" />
+                            Subir Documento
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -337,8 +381,9 @@ export default function Documento() {
                 ) : documentos.length > 0 ? (
                     <DocumentGrid
                         documentos={documentos}
+                        onOpen={abrirDocumento}
                         onDownload={handleDownload}
-                        onDelete={(documento) => setDeletingId(documento.id)}
+                        onDelete={isReadOnly ? undefined : (documento) => setDeletingId(documento.id)}
                     />
                 ) : (
                     <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">

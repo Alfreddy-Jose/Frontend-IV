@@ -15,6 +15,8 @@ import { voceroSections } from "./voceroSections";
 import BreadcrumbReusable from "@/components/shared/BreadcrumbReusable";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
 import { useAuth } from "@/context/AuthContext";
+import { useLapso } from "@/context/LapsoContext";
+import { Guard } from "@/components/shared/Guard";
 import SelectSearch from "@/components/shared/SelectSearch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -25,6 +27,8 @@ import { SkeletonTableFilter } from "@/components/shared/SkeletonTableFilter";
 
 export default function Voceros() {
   const { pnf, lapsoActual, user } = useAuth();
+  // Modo consulta cuando el lapso seleccionado está cerrado.
+  const { isReadOnly } = useLapso();
 
   // Estados de datos
   const [data, setData] = useState([]);
@@ -274,12 +278,14 @@ export default function Voceros() {
 
           {/* Modal para Designar Vocero */}
           {lapsoActual ? (
-            <CreateVoceroModal
-              fetchVoceros={fetchVoceros}
-              estudiantes={estudiantes}
-              listaSecciones={secciones}
-              loadingEstudiantes={loadingCatalogosForm}
-            />
+            <Guard requiredPermissions="vocero.crear" blockOnReadOnly>
+              <CreateVoceroModal
+                fetchVoceros={fetchVoceros}
+                estudiantes={estudiantes}
+                listaSecciones={secciones}
+                loadingEstudiantes={loadingCatalogosForm}
+              />
+            </Guard>
           ) : (
             <Button
               disabled
@@ -332,7 +338,10 @@ export default function Voceros() {
       {/* Tabla de Datos */}
       <div className="my-5">
         <DataTable
-          columns={columnsVocero(handleViewDetails, handleDelete)}
+          columns={columnsVocero(
+            handleViewDetails,
+            isReadOnly ? undefined : handleDelete,
+          )}
           data={filteredData}
           filterColumn="nombre"
         />

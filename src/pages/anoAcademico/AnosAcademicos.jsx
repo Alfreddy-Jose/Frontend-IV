@@ -179,7 +179,7 @@ export default function AnosAcademicos() {
             </span>
           </Button>
 
-          <Guard requiredPermissions="anoAcademico.crear">
+          <Guard requiredPermissions="anoAcademico.crear" blockOnReadOnly>
             <div className="flex justify-end">
               <CreateAnoModal fetchAnos={fetchAnos} />
             </div>

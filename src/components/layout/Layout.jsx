@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 import { Toaster } from "react-hot-toast";
 import { SidebarProvider } from "@/context/SidebarContext";
+import ReadOnlyBanner from "@/components/shared/ReadOnlyBanner";
 
 export default function Layout({ children }) {
   return (
@@ -47,6 +48,7 @@ export default function Layout({ children }) {
               <div className="pt-6 px-4">
                 <div className="w-full min-h-[calc(100vh-230px)]">
                   <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 dark:bg-slate-900">
+                    <ReadOnlyBanner />
                     {children}
                   </div>
                 </div>

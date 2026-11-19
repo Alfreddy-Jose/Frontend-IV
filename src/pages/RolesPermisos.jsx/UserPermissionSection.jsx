@@ -7,8 +7,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2, UserCog, Save } from "lucide-react";
+import { useLapso } from "@/context/LapsoContext";
 
 const UserPermissionSection = ({ users = [], permissionsStructure = [] }) => {
+  // Modo consulta cuando el lapso seleccionado está cerrado.
+  const { isReadOnly } = useLapso();
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
   const [loadingPerms, setLoadingPerms] = useState(false);
@@ -142,6 +145,7 @@ const UserPermissionSection = ({ users = [], permissionsStructure = [] }) => {
               </div>
             </div>
 
+            {!isReadOnly && (
             <div className="flex items-center gap-6">
               {/* Select All */}
               <div
@@ -174,6 +178,7 @@ const UserPermissionSection = ({ users = [], permissionsStructure = [] }) => {
                 )}
               </Button>
             </div>
+            )}
           </div>
 
           {/* Grid de permisos */}

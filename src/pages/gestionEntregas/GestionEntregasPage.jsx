@@ -6,6 +6,7 @@ import { getAllDocumentos } from "@/services/documentosControl";
 import { getAllEntregas, toggleEntrega } from "@/services/controlEntrega";
 import { getHistorialActividades } from "@/services/historialActividades";
 import { useAuth } from "@/context/AuthContext";
+import { useLapso } from "@/context/LapsoContext";
 import { getAllPnfs } from "@/services/pnfService";
 import { useFormik } from "formik";
 import SelectSearch from "@/components/shared/SelectSearch";
@@ -30,7 +31,10 @@ export default function GestionEntregasPage() {
   // States
   const { user, lapsoActual } = useAuth();
   const hasPermission = useHasPermission();
-  const canToggleEntrega = hasPermission(["entrega.crear", "entrega.editar"]);
+  // Modo consulta cuando el lapso seleccionado está cerrado.
+  const { isReadOnly } = useLapso();
+  const canToggleEntrega =
+    hasPermission(["entrega.crear", "entrega.editar"]) && !isReadOnly;
   const [documentos, setDocumentos] = useState([]);
   const [docentes, setDocentes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -318,11 +322,13 @@ export default function GestionEntregasPage() {
           </TabsList>
 
           {/* Settings Drawer Subcomponent */}
-          <SettingsDrawer
-            activeDeliverables={documentos}
-            onAddDeliverable={handleAddDeliverable}
-            onDeleteDeliverable={handleDeleteDeliverable}
-          />
+          {!isReadOnly && (
+            <SettingsDrawer
+              activeDeliverables={documentos}
+              onAddDeliverable={handleAddDeliverable}
+              onDeleteDeliverable={handleDeleteDeliverable}
+            />
+          )}
         </div>
 
         {/* 1. Seguimiento de Docentes Content */}

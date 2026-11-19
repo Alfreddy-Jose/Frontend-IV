@@ -102,7 +102,7 @@ export const columnsAnos = (onEdit, onDelete, onStatusChange) => [
       };
 
       return (
-        <Guard requiredPermissions={["anoAcademico.editar"]}>
+        <Guard requiredPermissions={["anoAcademico.editar"]} blockOnReadOnly>
           <div className="flex items-center justify-start min-w-[60px]">
             <Switch
               checked={isChecked}
@@ -127,7 +127,7 @@ export const columnsAnos = (onEdit, onDelete, onStatusChange) => [
       }
 
       return (
-        <Guard requiredPermissions={["anoAcademico.editar", "anoAcademico.eliminar"]}>
+        <Guard requiredPermissions={["anoAcademico.editar", "anoAcademico.eliminar"]} blockOnReadOnly>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">

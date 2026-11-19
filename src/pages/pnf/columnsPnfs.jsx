@@ -44,7 +44,7 @@ export const columnsPnfs = (onEdit, onDelete) => [
       const pnf = row.original;
 
       return (
-        <Guard requiredPermissions={["pnf.editar", "pnf.eliminar"]}>
+        <Guard requiredPermissions={["pnf.editar", "pnf.eliminar"]} blockOnReadOnly>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">

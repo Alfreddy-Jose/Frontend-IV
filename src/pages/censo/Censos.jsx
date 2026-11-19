@@ -17,6 +17,7 @@ import BreadcrumbReusable from "@/components/shared/BreadcrumbReusable";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
 import { Guard } from "@/components/shared/Guard";
 import { useAuth } from "@/context/AuthContext";
+import { useLapso } from "@/context/LapsoContext";
 import SelectSearch from "@/components/shared/SelectSearch";
 import { Label } from "@/components/ui/label";
 import ShowCensoModal from "./ShowCensoModal";
@@ -34,6 +35,8 @@ import { SkeletonTableFilter } from "@/components/shared/SkeletonTableFilter";
 
 export default function Censos() {
   const { pnf, lapsoActual, user } = useAuth();
+  // Modo consulta cuando el lapso seleccionado está cerrado.
+  const { isReadOnly } = useLapso();
 
   // Estados
   const [data, setData] = useState([]);
@@ -341,7 +344,7 @@ export default function Censos() {
           </DropdownMenu>
 
           {lapsoActual ? (
-            <Guard requiredPermissions="censo.crear">
+            <Guard requiredPermissions="censo.crear" blockOnReadOnly>
               <CreateCensoModal
                 fetchCensos={fetchCensos}
                 estudiantes={estudiantes}
@@ -404,7 +407,11 @@ export default function Censos() {
       {/* Tabla de Datos */}
       <div className="my-5">
         <DataTable
-          columns={columnsCenso(handleViewDetails, handleEdit, handleDelete)}
+          columns={columnsCenso(
+            handleViewDetails,
+            isReadOnly ? undefined : handleEdit,
+            isReadOnly ? undefined : handleDelete,
+          )}
           data={filteredData}
           filterColumn="nombre"
         />

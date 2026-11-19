@@ -41,8 +41,8 @@ export default function CreatePerModal({ fetData, Docentes, Estudiantes }) {
         // validar la calificacion que sea decimal con 2 decimales
         calificacion: Yup.number()
           .typeError("Debe ser un número")
-          .min(0, "Mínimo 0")
-          .max(100, "Máximo 100")
+          .min(26, "Mínimo 26")
+          .max(55, "Máximo 55")
           .required("La calificación es obligatoria"),
       }),
     [],

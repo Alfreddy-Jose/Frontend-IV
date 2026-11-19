@@ -61,7 +61,7 @@ export const columns = (onEdit, onDelete) => [
       const sede = row.original;
 
       return (
-        <Guard requiredPermissions={["sede.editar", "sede.eliminar"]}>
+        <Guard requiredPermissions={["sede.editar", "sede.eliminar"]} blockOnReadOnly>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">

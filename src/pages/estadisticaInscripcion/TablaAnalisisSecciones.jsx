@@ -19,9 +19,11 @@ import {
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
-    ChevronsRight
+    ChevronsRight,
+    Search
 } from "lucide-react";
 import { notify } from "@/components/shared/Notify";
+import { ModernInput } from "@/components/shared/InputModerno";
 import { Label } from "@/components/ui/label";
 import {
     Select,
@@ -32,6 +34,14 @@ import {
 } from "@/components/ui/select";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
+
+// Normaliza texto para que la búsqueda ignore mayúsculas y acentos.
+function normalizarTexto(valor) {
+    return String(valor ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+}
 
 function getEstado(matricula) {
     if (matricula > 45) return "sobrecargada";
@@ -78,13 +88,31 @@ export function TablaAnalisisSecciones({ secciones = [], onRefresh, onDividir, o
     const [seccionParaDividir, setSeccionParaDividir] = useState(null);
     const [seccionParaFusionar, setSeccionParaFusionar] = useState(null);
     const [filtroEstado, setFiltroEstado] = useState("todas");
+    const [busqueda, setBusqueda] = useState("");
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(10);
 
+    const terminoBusqueda = normalizarTexto(busqueda).trim();
+
     const seccionesFiltradas = useMemo(() => {
-        if (filtroEstado === "todas") return secciones;
-        return secciones.filter(sec => getEstado(sec.matricula) === filtroEstado);
-    }, [secciones, filtroEstado]);
+        const porEstado = filtroEstado === "todas"
+            ? secciones
+            : secciones.filter(sec => getEstado(sec.matricula) === filtroEstado);
+
+        if (!terminoBusqueda) return porEstado;
+
+        // Busca coincidencias en cualquiera de las columnas visibles.
+        return porEstado.filter((sec) =>
+            [
+                sec.codigo,
+                sec.nombre,
+                sec.sede,
+                sec.unidad_curricular,
+                sec.trayecto,
+                sec.matricula,
+            ].some((valor) => normalizarTexto(valor).includes(terminoBusqueda))
+        );
+    }, [secciones, filtroEstado, terminoBusqueda]);
 
     const pageCount = Math.ceil(seccionesFiltradas.length / pageSize) || 1;
     const canPreviousPage = pageIndex > 0;
@@ -185,6 +213,24 @@ export function TablaAnalisisSecciones({ secciones = [], onRefresh, onDividir, o
                 </div>
             </div>
 
+            {/* Buscador por columnas */}
+            <div className="px-6 py-3 border-b border-gray-100 dark:border-slate-800">
+                <div className="relative w-full sm:max-w-sm">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+                    <ModernInput
+                        type="text"
+                        className="[&_input]:pl-9"
+                        placeholder="Buscar por sección, sede, unidad curricular, trayecto o matrícula..."
+                        aria-label="Buscar secciones"
+                        value={busqueda}
+                        onChange={(e) => {
+                            setBusqueda(e.target.value);
+                            setPageIndex(0);
+                        }}
+                    />
+                </div>
+            </div>
+
             <div className="overflow-x-auto">
                 <Table>
                     <TableHeader className="bg-gray-50/50 dark:bg-slate-900/50">
@@ -242,7 +288,7 @@ export function TablaAnalisisSecciones({ secciones = [], onRefresh, onDividir, o
                                         <EstadoBadge matricula={sec.matricula} />
                                     </TableCell>
                                     <TableCell className="text-center px-4">
-                                        {estado === "sobrecargada" && (
+                                        {estado === "sobrecargada" && onDividir && (
                                             <Button
                                                 size="sm"
                                                 variant="outline"
@@ -253,7 +299,7 @@ export function TablaAnalisisSecciones({ secciones = [], onRefresh, onDividir, o
                                                 Dividir Sección
                                             </Button>
                                         )}
-                                        {estado === "baja" && (
+                                        {estado === "baja" && onFusionar && (
                                             <Button
                                                 size="sm"
                                                 variant="outline"
@@ -268,6 +314,18 @@ export function TablaAnalisisSecciones({ secciones = [], onRefresh, onDividir, o
                                 </TableRow>
                             );
                         })}
+                        {currentData.length === 0 && (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={7}
+                                    className="py-8 text-center text-sm text-slate-500 dark:text-slate-400"
+                                >
+                                    {terminoBusqueda
+                                        ? `No se encontraron secciones que coincidan con «${busqueda}».`
+                                        : "No hay secciones con este filtro."}
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>

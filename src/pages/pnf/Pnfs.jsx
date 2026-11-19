@@ -128,7 +128,7 @@ export default function Pnfs() {
             </span>
           </Button>
 
-          <Guard requiredPermissions="pnf.crear">
+          <Guard requiredPermissions="pnf.crear" blockOnReadOnly>
             <div className="flex justify-end">
               <CreatePnfModal fetchPnfs={fetchPnfs} trayectos={trayectos} />
             </div>

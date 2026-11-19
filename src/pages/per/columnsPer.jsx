@@ -84,26 +84,30 @@ export const columnsPer = (handleViewDetails, onEdit, onDelete) => [
                             </Guard>
 
                             {/* opcion de editar */}
-                            <Guard requiredPermissions="per.editar">
-                                <DropdownMenuItem
-                                    onClick={() => onEdit(per)}
-                                    className="cursor-pointer flex items-center gap-2"
-                                >
-                                    <SquarePen className="h-4 w-4 text-blue-700 dark:text-blue-400" />
-                                    Editar
-                                </DropdownMenuItem>
-                            </Guard>
+                            {onEdit && (
+                                <Guard requiredPermissions="per.editar">
+                                    <DropdownMenuItem
+                                        onClick={() => onEdit(per)}
+                                        className="cursor-pointer flex items-center gap-2"
+                                    >
+                                        <SquarePen className="h-4 w-4 text-blue-700 dark:text-blue-400" />
+                                        Editar
+                                    </DropdownMenuItem>
+                                </Guard>
+                            )}
 
                             {/* opcion de eliminar */}
-                            <Guard requiredPermissions="per.eliminar">
-                                <DropdownMenuItem
-                                    onSelect={() => onDelete(per)}
-                                    className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer flex items-center gap-2"
-                                >
-                                    <Trash2 className="h-4 w-4 text-red-700 dark:text-red-300" />
-                                    Eliminar
-                                </DropdownMenuItem>
-                            </Guard>
+                            {onDelete && (
+                                <Guard requiredPermissions="per.eliminar">
+                                    <DropdownMenuItem
+                                        onSelect={() => onDelete(per)}
+                                        className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer flex items-center gap-2"
+                                    >
+                                        <Trash2 className="h-4 w-4 text-red-700 dark:text-red-300" />
+                                        Eliminar
+                                    </DropdownMenuItem>
+                                </Guard>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </Guard>

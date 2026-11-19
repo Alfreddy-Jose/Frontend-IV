@@ -10,8 +10,11 @@ import { getAllUsers } from "@/services/userService";
 import RoleSection from "./RoleSection";
 import UserPermissionSection from "./UserPermissionSection";
 import RolesSkeleton from "@/components/shared/RolesSkeleton";
+import { useLapso } from "@/context/LapsoContext";
 
 const RolesPermissions = () => {
+  // Modo consulta cuando el lapso seleccionado está cerrado.
+  const { isReadOnly } = useLapso();
   const [activeTab, setActiveTab] = useState("role");
   const [view, setView] = useState("list");
   const [loading, setLoading] = useState(true);
@@ -100,7 +103,7 @@ const RolesPermissions = () => {
         </div>
 
         {/* Botón de Acción - Solo visible en modo "role" y vista "list" */}
-        {activeTab === "role" && view === "list" && (
+        {activeTab === "role" && view === "list" && !isReadOnly && (
           <div className="flex justify-end pb-[7px]">
             <Button onClick={() => setView("create")} variant="outline">
               <Plus className="w-4 h-4 mr-2" />
@@ -113,7 +116,7 @@ const RolesPermissions = () => {
       <div className="mt-2">
         {activeTab === "role" ? (
           /* ——— CONTENIDO: POR ROL ——— */
-          view === "list" ? (
+          view === "list" || isReadOnly ? (
             <div className="space-y-12">
               {rolesList.map((role) => (
                 <RoleSection

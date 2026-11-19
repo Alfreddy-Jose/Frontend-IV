@@ -140,7 +140,7 @@ export default function Docentes() {
             </span>
           </Button>
 
-          <Guard requiredPermissions="docente.crear">
+          <Guard requiredPermissions="docente.crear" blockOnReadOnly>
             <div className="flex justify-end">
               <CreateDocenteModal fetchDocente={fetchDocentes} dataSelect={dataSelect} />
             </div>

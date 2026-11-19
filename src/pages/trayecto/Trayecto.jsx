@@ -105,7 +105,7 @@ export default function Trayecto() {
             </span>
           </Button>
 
-          <Guard requiredPermissions="trayecto.crear">
+          <Guard requiredPermissions="trayecto.crear" blockOnReadOnly>
             <div className="flex justify-end">
               <CreateTrayectoMoldal fetchTrayecto={fetchTrayecto} />
             </div>

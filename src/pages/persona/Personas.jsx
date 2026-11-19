@@ -193,7 +193,7 @@ export default function Personas() {
             </span>
           </Button>
 
-          <Guard requiredPermissions="persona.crear">
+          <Guard requiredPermissions="persona.crear" blockOnReadOnly>
             <div className="flex justify-end">
               <CreatePersonasModal
                 fetchPersona={fetchPersona}

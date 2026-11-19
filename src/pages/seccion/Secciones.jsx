@@ -310,7 +310,7 @@ export default function Secciones() {
             </span>
           </Button>
 
-          <Guard requiredPermissions="seccion.crear">
+          <Guard requiredPermissions="seccion.crear" blockOnReadOnly>
             <CreateSeccioneModal
               fetchSecciones={fetchSecciones}
               selectData={selectData}

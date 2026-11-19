@@ -23,9 +23,12 @@ import { Package } from "lucide-react";
 import { getInventarioSections } from "./inventarioSections";
 import EditBienModal from "./EditBienModal";
 import { Guard } from "@/components/shared/Guard";
+import { useLapso } from "@/context/LapsoContext";
 
 export default function Inventario() {
   const { lapsoActual, user, pnf } = useAuth();
+  // Modo consulta cuando el lapso seleccionado está cerrado.
+  const { isReadOnly } = useLapso();
 
   // Estados de datos
   const [data, setData] = useState([]);
@@ -274,7 +277,7 @@ export default function Inventario() {
 
           {/* Modal para Registrar Bien */}
           {lapsoActual ? (
-            <Guard requiredPermissions="inventario.crear">
+            <Guard requiredPermissions="inventario.crear" blockOnReadOnly>
               <CreateBienModal
                 fetchInventario={fetchInventario}
                 lapsoActual={lapsoActual}
@@ -306,9 +309,9 @@ export default function Inventario() {
         <DataTable
           columns={columnsInventario(
             handleViewDetails,
-            handleDelete,
-            handleEdit,
-            handleChangeEstatus,
+            isReadOnly ? undefined : handleDelete,
+            isReadOnly ? undefined : handleEdit,
+            isReadOnly ? undefined : handleChangeEstatus,
           )}
           data={filteredData}
           filterColumn="codigo_uni"

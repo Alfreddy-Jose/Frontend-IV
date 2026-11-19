@@ -68,14 +68,14 @@ export function DropzoneArea({ file, onFileSelect, onClearFile, loading, progres
     };
 
     return (
-        <div className="bg-white dark:bg-slate-950 border border-gray-100 dark:border-slate-800 rounded-xl p-8 shadow-sm">
+        <div className="bg-white dark:bg-slate-950 border border-gray-100 dark:border-slate-800 rounded-xl p-4 sm:p-8 shadow-sm">
             <div
                 onClick={handleClick}
                 onDragEnter={handleDragEnter}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-colors
+                className={`relative border-2 border-dashed rounded-xl p-6 sm:p-12 text-center transition-colors
             ${isDragOver ? "border-blue-500 bg-blue-50 dark:bg-blue-900/10" : "border-gray-200 dark:border-slate-800"}
             ${file ? "bg-slate-50 dark:bg-slate-900" : ""}
             ${!file && !loading ? "cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 hover:bg-slate-50 dark:hover:bg-slate-800/50" : ""}
@@ -93,63 +93,65 @@ export function DropzoneArea({ file, onFileSelect, onClearFile, loading, progres
                 {/* Contenedor transparente para los hijos (evita flickering al arrastrar sobre ellos) */}
                 <div className="pointer-events-none">
                     {!file && !loading && (
-                        <div className="flex flex-col items-center justify-center space-y-4">
-                            <div className="bg-blue-100 dark:bg-blue-900/30 p-4 rounded-full">
-                                <UploadCloud className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                        <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                            <div className="bg-blue-100 dark:bg-blue-900/30 p-3 sm:p-4 rounded-full">
+                                <UploadCloud className="w-8 sm:w-10 h-8 sm:h-10 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div>
-                                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-1">
+                                <h3 className="text-base sm:text-lg font-medium text-slate-900 dark:text-slate-100 mb-1">
                                     Arrastra y suelta tu archivo aquí
                                 </h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                                     o haz clic para examinar (formatos soportados: .xlsx, .xls, .csv)
                                 </p>
                             </div>
-                            <Button className="pointer-events-auto" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
-                                Seleccionar Archivo
+                            <Button className="pointer-events-auto px-4 py-2 sm:px-6 sm:py-2" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
+                                <span className="hidden sm:inline">Seleccionar Archivo</span>
+                                <span className="sm:hidden">Examinar</span>
                             </Button>
                         </div>
                     )}
 
                     {file && !loading && (
-                        <div className="flex flex-col items-center justify-center space-y-4">
-                            <div className="bg-green-100 dark:bg-green-900/30 p-4 rounded-full relative pointer-events-auto">
-                                <FileSpreadsheet className="w-10 h-10 text-green-600 dark:text-green-400 pointer-events-none" />
+                        <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-4">
+                            <div className="bg-green-100 dark:bg-green-900/30 p-3 sm:p-4 rounded-full relative pointer-events-auto">
+                                <FileSpreadsheet className="w-8 sm:w-10 h-8 sm:h-10 text-green-600 dark:text-green-400 pointer-events-none" />
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onClearFile();
                                     }}
-                                    className="absolute -top-2 -right-2 bg-red-100 dark:bg-red-900/50 rounded-full p-1 text-red-600 dark:text-red-400 hover:bg-red-200 transition-colors"
+                                    className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-red-100 dark:bg-red-900/50 rounded-full p-1 text-red-600 dark:text-red-400 hover:bg-red-200 transition-colors"
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-3 sm:w-4 h-3 sm:h-4" />
                                 </button>
                             </div>
                             <div>
-                                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-1">
+                                <h3 className="text-base sm:text-lg font-medium text-slate-900 dark:text-slate-100 mb-1">
                                     Archivo seleccionado
                                 </h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                                     {file.name} ({(file.size / 1024).toFixed(2)} KB)
                                 </p>
                             </div>
-                            <Button className="px-8 mt-4 pointer-events-auto" onClick={(e) => { e.stopPropagation(); onUpload(); }}>
-                                Procesar Archivo
+                            <Button className="px-4 sm:px-8 py-2 sm:py-3 pointer-events-auto" onClick={(e) => { e.stopPropagation(); onUpload(); }}>
+                                <span className="hidden sm:inline">Procesar Archivo</span>
+                                <span className="sm:hidden">Procesar</span>
                             </Button>
                         </div>
                     )}
 
                     {loading && (
-                        <div className="flex flex-col items-center justify-center space-y-6 w-full max-w-md mx-auto pointer-events-auto">
-                            <div className="bg-blue-100 dark:bg-blue-900/30 p-4 rounded-full animate-pulse">
-                                <UploadCloud className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                        <div className="flex flex-col items-center justify-center space-y-4 w-full max-w-xs sm:max-w-md mx-auto pointer-events-auto">
+                            <div className="bg-blue-100 dark:bg-blue-900/30 p-3 sm:p-4 rounded-full animate-pulse">
+                                <UploadCloud className="w-8 sm:w-10 h-8 sm:h-10 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div className="w-full text-center">
-                                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-4">
+                                <h3 className="text-base sm:text-lg font-medium text-slate-900 dark:text-slate-100 mb-3">
                                     Subiendo y procesando estadísticas...
                                 </h3>
-                                <Progress value={progress} className="w-full h-3" />
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                                <Progress value={progress} className="w-full h-2 sm:h-3" />
+                                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2">
                                     Por favor espera, evaluando secciones...
                                 </p>
                             </div>

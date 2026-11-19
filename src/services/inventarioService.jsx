@@ -13,7 +13,9 @@ export const getInventarioByLapso = async (lapsoId, params = {}) => {
  */
 export const getAllBienes = async (lapsoId, params = {}) => {
     const response = await Api.get('/bienes', {
-        params: params, // Parámetros query opcionales (búsquedas, paginación, etc.)
+        // Se envía el lapso explícitamente para que el backend filtre por él,
+        // además del header X-Lapso-Id que inyecta el interceptor de api.jsx.
+        params: lapsoId ? { ...params, lapso_id: lapsoId } : params,
     });
     return response.data;
 };

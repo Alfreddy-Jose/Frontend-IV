@@ -118,26 +118,30 @@ export const columnsCenso = (handleViewDetails, onEdit, onDelete) => [
               </Guard>
 
               {/* opcion de editar */}
-              <Guard requiredPermissions="censo.editar">
-                <DropdownMenuItem
-                  onClick={() => onEdit(censo)}
-                  className="cursor-pointer"
-                >
-                  <SquarePen className="h-4 w-4 text-blue-700 dark:text-blue-400" />
-                  Editar
-                </DropdownMenuItem>
-              </Guard>
+              {onEdit && (
+                <Guard requiredPermissions="censo.editar">
+                  <DropdownMenuItem
+                    onClick={() => onEdit(censo)}
+                    className="cursor-pointer"
+                  >
+                    <SquarePen className="h-4 w-4 text-blue-700 dark:text-blue-400" />
+                    Editar
+                  </DropdownMenuItem>
+                </Guard>
+              )}
 
               {/* opcion de eliminar */}
-              <Guard requiredPermissions="censo.eliminar">
-                <DropdownMenuItem
-                  onSelect={() => onDelete(censo)}
-                  className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
-                >
-                  <Trash2 className="h-4 w-4 text-red-700 dark:text-red-300" />
-                  Eliminar
-                </DropdownMenuItem>
-              </Guard>
+              {onDelete && (
+                <Guard requiredPermissions="censo.eliminar">
+                  <DropdownMenuItem
+                    onSelect={() => onDelete(censo)}
+                    className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-700 dark:text-red-300" />
+                    Eliminar
+                  </DropdownMenuItem>
+                </Guard>
+              )}
 
             </DropdownMenuContent>
           </DropdownMenu>

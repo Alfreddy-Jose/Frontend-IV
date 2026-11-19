@@ -7,6 +7,7 @@ import { EstadisticaInscripcionSkeleton } from "./EstadisticaInscripcionSkeleton
 import { DropzoneArea } from "./DropzoneArea";
 import { TablaAnalisisSecciones } from "./TablaAnalisisSecciones";
 import { useAuth } from "@/context/AuthContext";
+import { useLapso } from "@/context/LapsoContext";
 import { indexSeccion } from "@/services/estadisticaInscripcionService";
 import { getAllPnfs } from "@/services/pnfService";
 import SelectSearch from "@/components/shared/SelectSearch";
@@ -113,6 +114,8 @@ async function obtenerSecciones(lapsoId, pnfId) {
 
 export default function EstadisticaInscripcion() {
     const { lapsoActual, pnf, user } = useAuth();
+    // Modo consulta cuando el lapso seleccionado está cerrado.
+    const { isReadOnly } = useLapso();
 
     // El backend usa el PNF del usuario autenticado (`$user->pnf`): si tiene un PNF
     // asignado (coordinador) solo ve las secciones de ese PNF; si no lo tiene
@@ -412,7 +415,7 @@ export default function EstadisticaInscripcion() {
             <div className="flex flex-col gap-4 mb-8 md:flex-row md:items-center md:justify-between">
                 <BreadcrumbReusable items={items} />
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 md:gap-3">
                     <SelectorLapso />
 
                     {puedeElegirPnf ? (
@@ -423,7 +426,7 @@ export default function EstadisticaInscripcion() {
                             valueKey="id"
                             labelKey="nombre"
                             placeholder="Selecciona un PNF"
-                            div_style="w-56 shrink-0"
+                            div_style="w-full min-w-[140px] md:w-56 shrink-0"
                         />
                     ) : (
                         nombrePnfAsignado && (
@@ -440,18 +443,20 @@ export default function EstadisticaInscripcion() {
                     <Button
                         variant="outline"
                         onClick={downloadTemplate}
-                        className="shrink-0 gap-2"
+                        className="w-full md:w-auto shrink-0 gap-2"
                     >
                         <Download className="w-4 h-4" />
-                        Descargar Plantilla
+                        <span className="hidden md:inline">Descargar Plantilla</span>
                     </Button>
-                    <Button
-                        onClick={() => handleUploadModalChange(true)}
-                        className="shrink-0 gap-2"
-                    >
-                        <Upload className="w-4 h-4" />
-                        Subir Archivo
-                    </Button>
+                    {!isReadOnly && (
+                        <Button
+                            onClick={() => handleUploadModalChange(true)}
+                            className="w-full md:w-auto shrink-0 gap-2"
+                        >
+                            <Upload className="w-4 h-4" />
+                            <span className="hidden md:inline">Subir Archivo</span>
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -504,8 +509,8 @@ export default function EstadisticaInscripcion() {
             <TablaAnalisisSecciones
                 secciones={secciones}
                 pnfNombres={pnfNombres}
-                onDividir={handleDividir}
-                onFusionar={handleFusionar}
+                onDividir={isReadOnly ? undefined : handleDividir}
+                onFusionar={isReadOnly ? undefined : handleFusionar}
             />
 
             <Dialog open={showResultModal} onOpenChange={setShowResultModal}>

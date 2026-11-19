@@ -125,7 +125,7 @@ export const columnsLapso = (onEdit, onDelete, onForzarInicio, onForzarCierre) =
       };
 
       return (
-        <Guard requiredPermissions={["lapso.editar"]}>
+        <Guard requiredPermissions={["lapso.editar"]} blockOnReadOnly>
           <div className="flex items-center justify-start min-w-[60px]">
             <Switch
               checked={isChecked}
@@ -151,7 +151,7 @@ export const columnsLapso = (onEdit, onDelete, onForzarInicio, onForzarCierre) =
 
 
       return (
-        <Guard requiredPermissions={["lapso.editar", "lapso.eliminar"]}>
+        <Guard requiredPermissions={["lapso.editar", "lapso.eliminar"]} blockOnReadOnly>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">

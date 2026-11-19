@@ -66,7 +66,7 @@ export const columnsPersonas = (onEdit, onShow, onDelete) => [
               </DropdownMenuItem>
 
               {/* Opción para Editar */}
-              <Guard requiredPermissions="persona.editar">
+              <Guard requiredPermissions="persona.editar" blockOnReadOnly>
                 <DropdownMenuItem
                   onClick={() => onEdit(persona)}
                   className="cursor-pointer"
@@ -77,7 +77,7 @@ export const columnsPersonas = (onEdit, onShow, onDelete) => [
               </Guard>
 
               {/* Opción para Eliminar */}
-              <Guard requiredPermissions="persona.eliminar">
+              <Guard requiredPermissions="persona.eliminar" blockOnReadOnly>
                 <DropdownMenuItem
                   onSelect={() => onDelete(persona)}
                   className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"

@@ -60,7 +60,7 @@ export const columnsDocente = (onEdit, onDelete, onShow) => [
                 Ver Detalles
               </DropdownMenuItem>
 
-              <Guard requiredPermissions="docente.editar">
+              <Guard requiredPermissions="docente.editar" blockOnReadOnly>
                 <DropdownMenuItem
                   onClick={() => onEdit(docente)}
                   className="cursor-pointer"
@@ -69,7 +69,7 @@ export const columnsDocente = (onEdit, onDelete, onShow) => [
                   Editar
                 </DropdownMenuItem>
               </Guard>
-              <Guard requiredPermissions="docente.eliminar">
+              <Guard requiredPermissions="docente.eliminar" blockOnReadOnly>
                 <DropdownMenuItem
                   onSelect={() => onDelete(docente)}
                   className="bg-red-50 text-red-700 focus:text-destructive focus:bg-red-100 dark:bg-red-950/50 dark:text-red-300 dark:focus:bg-red-950 cursor-pointer"

@@ -101,7 +101,7 @@ export const columnsCoordinador = (onDelete) => [
     cell: ({ row }) => {
       const coordinador = row.original;
       return (
-        <Guard requiredPermissions={["coordinador.eliminar"]}>
+        <Guard requiredPermissions={["coordinador.eliminar"]} blockOnReadOnly>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">

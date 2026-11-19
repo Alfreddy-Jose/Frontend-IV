@@ -7,8 +7,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2, Save } from "lucide-react";
+import { useLapso } from "@/context/LapsoContext";
 
 const RoleSection = ({ role, permissionsStructure }) => {
+  // Modo consulta cuando el lapso seleccionado está cerrado.
+  const { isReadOnly } = useLapso();
   // Inicializamos los permisos marcados con los que ya trae el rol de la BD
   const [selectedPermissions, setSelectedPermissions] = useState(
     role.permissions.map((p) => p.name),
@@ -57,6 +60,7 @@ const RoleSection = ({ role, permissionsStructure }) => {
       <RoleHeader
         roleName={role.name}
         actions={
+          !isReadOnly && (
           <div className="flex items-center gap-6">
             {/* Contenedor del Select All */}
             <div
@@ -85,6 +89,7 @@ const RoleSection = ({ role, permissionsStructure }) => {
               )}
             </Button>
           </div>
+          )
         }
       />
 

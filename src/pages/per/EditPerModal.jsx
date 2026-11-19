@@ -47,8 +47,8 @@ export default function EditPerModal({
         ),
         calificacion: Yup.number()
           .typeError("Debe ser un número válido")
-          .min(0, "Mínimo 0")
-          .max(100, "Máximo 100")
+          .min(26, "Mínimo 26")
+          .max(55, "Máximo 55")
           .required("La calificación es obligatoria"),
       }),
     []

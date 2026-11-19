@@ -57,7 +57,7 @@ const dashboardLink = { name: "dashboard", href: "/", icon: LayoutGrid };
 
 const secondOtherLinks = [
   { name: "Control de Entregas", href: "/gestion_entregas", icon: FileText, requiredPermissions: "entrega.ver" },
-  { name: "Documentos", href: "/documentos", icon: FolderOpen /*requiredPermissions: "documento.ver"*/ },
+  { name: "Documentos", href: "/documentos", icon: FolderOpen, requiredPermissions: "documento.ver" },
   { name: "Censos Estudiantiles", href: "/censo_estudiantil", icon: UserCheck, requiredPermissions: "censo.ver" },
   { name: "Inventario", href: "/inventario", icon: ShelvingUnit, requiredPermissions: "inventario.ver" },
   { name: "PER", href: "/per", icon: ClipboardList, requiredPermissions: "per.ver" },
@@ -100,6 +100,11 @@ export default function Sidebar() {
 
   const visiblePersonsLinks = useMemo(() =>
     personsLinks.filter((link) => hasPermission(link.requiredPermissions)),
+    [hasPermission]
+  );
+
+  const canViewAudit = useMemo(() =>
+    hasPermission(auditLink.requiredPermissions),
     [hasPermission]
   );
 
@@ -430,24 +435,26 @@ export default function Sidebar() {
                 )}
 
                 {/* === Bitácora de Auditoría === */}
-                <li>
-                  <Link
-                    onClick={() => { if (isOpen) toggle(); }}
-                    to={auditLink.href}
-                    className={`text-sm capitalize font-medium rounded-xl flex items-center p-3 transition-all duration-200 group ${location.pathname === auditLink.href
-                      ? "bg-indigo-50 text-indigo-700 dark:bg-slate-800/60 dark:text-indigo-300 shadow-sm"
-                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800/30 dark:hover:text-slate-200"
-                      }`}
-                  >
-                    <auditLink.icon
-                      className={`w-5 h-5 mr-3 transition-colors ${location.pathname === auditLink.href
-                        ? "text-indigo-600 dark:text-indigo-300"
-                        : "text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300"
+                {canViewAudit && (
+                  <li>
+                    <Link
+                      onClick={() => { if (isOpen) toggle(); }}
+                      to={auditLink.href}
+                      className={`text-sm capitalize font-medium rounded-xl flex items-center p-3 transition-all duration-200 group ${location.pathname === auditLink.href
+                        ? "bg-indigo-50 text-indigo-700 dark:bg-slate-800/60 dark:text-indigo-300 shadow-sm"
+                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800/30 dark:hover:text-slate-200"
                         }`}
-                    />
-                    <span>{auditLink.name}</span>
-                  </Link>
-                </li>
+                    >
+                      <auditLink.icon
+                        className={`w-5 h-5 mr-3 transition-colors ${location.pathname === auditLink.href
+                          ? "text-indigo-600 dark:text-indigo-300"
+                          : "text-gray-400 group-hover:text-gray-600 dark:text-slate-500 dark:group-hover:text-slate-300"
+                          }`}
+                      />
+                      <span>{auditLink.name}</span>
+                    </Link>
+                  </li>
+                )}
               </ul>
             </div>
           </div>

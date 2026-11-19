@@ -9,6 +9,7 @@ import BreadcrumbReusable from "@/components/shared/BreadcrumbReusable";
 import { AlertDialogDestructive } from "@/components/shared/AlertDialogDestructive";
 import { SkeletonTableFilter } from "@/components/shared/SkeletonTableFilter";
 import { useAuth } from "@/context/AuthContext";
+import { useLapso } from "@/context/LapsoContext";
 // API & Definiciones
 import { getAllPers, deletePer, exportarPersPdf } from "@/services/perService";
 import { columnsPer } from "./columnsPer";
@@ -22,6 +23,8 @@ import { perSections } from "./perSections";
 
 export default function Per() {
   const { lapsoActual } = useAuth();
+  // Modo consulta cuando el lapso seleccionado está cerrado.
+  const { isReadOnly } = useLapso();
 
   // Estados principales de datos y carga
   const [data, setData] = useState([]);
@@ -109,8 +112,12 @@ export default function Per() {
 
   // Columnas memorizadas
   const columns = useMemo(() => {
-    return columnsPer(handleShowDetails, handleEdit, handleDelete);
-  }, [handleShowDetails, handleEdit, handleDelete]);
+    return columnsPer(
+      handleShowDetails,
+      isReadOnly ? undefined : handleEdit,
+      isReadOnly ? undefined : handleDelete,
+    );
+  }, [handleShowDetails, handleEdit, handleDelete, isReadOnly]);
 
   // Manejo de exportación de reporte
   const handleExportPdf = async () => {
@@ -196,7 +203,7 @@ export default function Per() {
           </Button>
 
           {/* Botón Abrir Modal de Creación */}
-          <Guard requiredPermissions="per.crear">
+          <Guard requiredPermissions="per.crear" blockOnReadOnly>
             <div className="flex justify-end">
               <CreatePerModal
                 fetData={fetchData}

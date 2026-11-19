@@ -142,7 +142,7 @@ export default function UnidadCurricular() {
                         </span>
                     </Button>
 
-                    <Guard requiredPermissions="unidad Curricular.crear">
+                    <Guard requiredPermissions="unidad Curricular.crear" blockOnReadOnly>
                         <CreateUnidadCurricularModal
                             fetchUnidades={fetchUnidades}
                             trayectos={trayectos}

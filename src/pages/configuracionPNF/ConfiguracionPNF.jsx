@@ -15,6 +15,7 @@ import CardParametro from "./CardParametro";
 import PanelSimulacion from "./PanelSimulacion";
 import DistribucionAulas from "./DistribucionAulas";
 import BotonGuardar from "./BotonGuardar";
+import { useLapso } from "@/context/LapsoContext";
 
 // ─── Constantes de Trayectos ─────────────────────────────────────────────────
 const TRAYECTOS = [
@@ -71,6 +72,8 @@ const validationSchema = Yup.object({
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 export default function ConfiguracionPNF() {
+  // Modo consulta cuando el lapso seleccionado está cerrado.
+  const { isReadOnly } = useLapso();
   const [loading, setLoading] = useState(true);
   const [trayectoSeleccionado, setTrayectoSeleccionado] = useState(TRAYECTOS[0].id);
   // Array de configuraciones por trayecto recibidas desde la API
@@ -315,7 +318,7 @@ export default function ConfiguracionPNF() {
                 </span>
                 . Las proyecciones de secciones se recalcularán usando estos valores.
               </p>
-              <BotonGuardar isSubmitting={formik.isSubmitting} />
+              {!isReadOnly && <BotonGuardar isSubmitting={formik.isSubmitting} />}
             </div>
           </div>
 

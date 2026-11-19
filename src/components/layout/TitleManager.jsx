@@ -33,6 +33,7 @@ const ROUTE_TITLES = {
     "/censo_estudiantil": "Censo Estudiantil",
     "/estadistica_inscripcion": "Estadística de Inscripción",
     "/per": "PER",
+    "/documentos": "Documentos",
     "/login": "Iniciar Sesión",
     "/unauthorized": "No Autorizado",
 };
